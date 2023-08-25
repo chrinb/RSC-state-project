@@ -11,7 +11,6 @@ signal_length = length(sData.ephysdata.lfp);
 srate         = 2500;
 nyquist       = srate/2;
 
-
 %% Define frequency-domain shape and cut-offs
 shape  = [0 0 1 1 0 0];
 transw = 0.1;
