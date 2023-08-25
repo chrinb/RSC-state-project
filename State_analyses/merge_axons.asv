@@ -1,0 +1,30 @@
+function [sData, roiClustIDs] = merge_axons(sData, varargin);
+
+% Written by Christoffer Berge | Vervaeke Lab
+
+% Function that merges clustered axons and saves them into a new field in
+% sData struct. If analyzing multiple sessions with the same FOV and ROIs,
+% the cluster indicies of one session can be inputed as a second argument.
+
+% Get indicies of axons
+[pc_rois, ~] = remove_cells;
+
+% Load DF/F
+ROIs_ts      = sData.imdata.roiSignals(2).newdff;
+
+% Assign clustered ROI indicies if user has provided it as input
+try
+    roiClustIDs  = varargin{1,1};
+catch
+    roiClustIDs = [];
+end
+
+% Find clustered axons 
+smoothSignal = 1;
+[merged_ROI, merged_ROI_deconv,roiClustIDs] = hierClust_axons(ROIs_ts,smoothSignal, sData, pc_rois, roiClustIDs);
+
+% Check that clustering did 
+if ~isempty(roiClustIDs)
+sData.imdata.roiSignals(2).mergedAxonDff = merged_ROI;
+sData.imdata.roiSignals(2).mergedAxonDec = merged_ROI_deconv;
+sData.imdata.roiSignals(2).roiClusterID  = roiClustIDs;

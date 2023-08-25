@@ -1,0 +1,302 @@
+function analysis_output =  spindle_mod_an(varargin)
+
+% Written by Christoffer Berge | Vervaeke Lab
+
+% Function that finds spindle-modulated ROIs 
+
+
+sData = varargin{1,1};
+
+checkParameter = @(param, n, str) (isnumeric(param) && param==n) || strcmp(param, str);
+
+% Check if user specified particular options for analysis. If not use
+% default options. 
+if nargin > 1
+    if isstruct( varargin{1,2} )
+        opts = varargin{1,2};
+    else
+        try
+            opts.exp_type           = varargin{1,2};
+            opts.signal_type        = varargin{1,3};
+            opts.split_rois         = varargin{1,4};
+%             opts.swr_for_analysis   = varargin{1,5};
+%             opts.swr_cluster_thresh = varargin{1,6};
+%             opts.swr_awake_or_sleep = varargin{1,7};
+        catch
+        end
+    end
+end
+
+% Get ROI signals
+if nargin > 1 && isfield(opts, 'preDef')
+    [signal, text, opts, label3, rois_for_an, ~, cells_to_exclude] = ...
+    get_roi_signals_from_sData(sData, opts );
+else
+    [signal, text, opts, label3, rois_for_an, ~, cells_to_exclude] = ...
+    get_roi_signals_from_sData(sData, get_event_analysis_options(varargin) );
+end
+
+% Z-score data. 
+zscore_signal = bsxfun(@minus, signal, mean(signal,2) ); 
+zscore_signal = bsxfun(@rdivide, zscore_signal, std(signal,0,2));
+
+%% Define variables for analysis
+nr_of_seconds  = 3; % Before/after sindle onset
+nr_of_shuffles = 1000; % nr of shuffle iterations
+min_nr_events  = 5; 
+
+frames         = sData.daqdata.frame_onset_reference_frame;
+% time           = (-(31*nr_of_seconds):(31*nr_of_seconds))./31;
+% sessionID      = sData.sessionInfo.sessionID;
+win_length           = (nr_of_seconds*31)*2+1;
+All_ROIs             = zeros(nr_of_shuffles,1);
+
+% time2                 = linspace(-nr_of_seconds,nr_of_seconds,win_length);
+% swr_idx              = frames(round(swr_idx));
+time_win             = (62:108); % -1s to +500ms after SWR peak
+% time_win = 1:win_length;
+
+%% Select sleep spindles for analysis
+
+spindle_select     = [];
+spin_start_end_str = strcat('NREMspindleStartEnd', spindle_select);
+
+% convert sleep spindle time stamps from e-phys to 2P time
+spindle_idx_start = sData.ephysdata2.(spin_start_end_str)(:,1);
+
+% Get time points for sleep spindle onsets
+spindle_idx_start = get_spindle_idx(opts , spindle_idx_start);
+
+%% Preallocate 
+[signal_spindle_activity, signal_spindle_activity_zscore] ...
+    = deal( zeros(length(spindle_idx_start), win_length) );
+
+[signal_spindle_activity_mean,  signal_spindle_activity_meanZ,...
+signal_spindle_median, signal_spindle_medianZ] = deal( zeros(size(signal,1), win_length) );
+
+% convert sleep spindle onset time stamps from e-phys to 2P time
+spindle_idx_start = frames(round(spindle_idx_start));
+
+%% Run main analysis
+
+% Loop over rois
+for roinr = rois_for_an
+
+    roi_signal        = signal(roinr, :); 
+    roi_signal_zscore = zscore_signal(roinr,:); 
+
+    % Get all peri-spindle activity windows from current ROI
+    [signal_spindle_activity,signal_spindle_activity_zscore] = ...
+        extract_avg_activity(spindle_idx_start,roi_signal, roi_signal_zscore,signal_spindle_activity,...
+        signal_spindle_activity_zscore, nr_of_seconds, signal, opts.baseSub, roinr);
+
+    % Find mean/median spindle-aligned activity for current ROI
+    signal_spindle_activity_mean(roinr,:)  = mean(signal_spindle_activity, 'omitnan');
+    signal_spindle_activity_meanZ(roinr,:) = mean(signal_spindle_activity_zscore, 'omitnan');
+
+%     signal_swr_activity_median(roinr,:)  = median(signal_swr_activity, 'omitnan');
+%     signal_swr_activity_medianZ(roinr,:) = median(signal_swr_activity_zscore, 'omitnan');
+
+    % Run shuffle analysis
+    All_ROIs = shuffle_analysis(win_length,...
+        nr_of_shuffles, signal_spindle_activity, roinr, All_ROIs, signal_spindle_activity_mean,...
+        time_win, min_nr_events);
+end
+
+%% Find activated and suppressed ROIs
+
+% Get activated and suppressed ROIs
+sorted_rois         = split_modulated_rois(All_ROIs, win_length, signal_spindle_activity_mean, ...
+                    signal_spindle_activity_meanZ, opts, sData, spindle_idx_start, nr_of_seconds, 'spindle');
+
+% Store variables used in the analysis
+analysis_varables   = {All_ROIs, win_length, signal_spindle_activity_mean, ...
+                    signal_spindle_activity_meanZ, opts, spindle_idx_start, nr_of_seconds};
+
+% Find percentage of activated or suppressed ROIs
+prc_mod = prc_mod_cells(rois_for_an, sorted_rois);
+
+%% Find activated and suppressed ROIs
+% spindle_modulated_ROI_nr = nonzeros(All_ROIs);
+% 
+% zscore_spindle_mod_neurons = mean_zscore_spindle_activity(spindle_modulated_ROI_nr,:);
+% 
+% ROIs_activated = [];
+% ROIs_suppressed = [];
+% ROIs_unclassified = [];
+% m = 1;
+% n = 1;
+% p = 1;
+% % loop over modulated ROIs and classify as activated or suppressed based on
+% % comparing mean activity in a baseline window (-3s to 0s) vs a test
+% % period (0s to 3s after spindle onset)
+% baseline_window = (1:floor(win_length/2));
+% test_window     = (ceil((win_length)/2):win_length(end));
+% 
+% for mod_neurons = 1:length(spindle_modulated_ROI_nr)
+%     neuron_n = spindle_modulated_ROI_nr(mod_neurons);
+%     if mean( mean_spindle_activity(neuron_n,baseline_window)) > mean( mean_spindle_activity(neuron_n,test_window))
+%         ROIs_suppressed(m,:) = mean_spindle_activity( neuron_n,:);
+%         m = m+1;
+%     elseif mean( mean_spindle_activity(neuron_n,baseline_window)) < mean( mean_spindle_activity(neuron_n, test_window))
+%         ROIs_activated(n,:) = mean_spindle_activity( neuron_n,:);
+%         n = n+1;
+%     else
+%         unclassified_ROIs(p,:) = mean_spindle_activity( neuron_n,:);
+%         p = p+1;
+%     end
+% end
+% 
+% %% Find the indicies of spindle modulated ROIs
+% ROIs_activated_idx = zeros(size(ROIs_activated,1),1);
+% % loop over nr of activated ROIs
+% for j = 1:size(ROIs_activated,1)
+%     % find the indicies of the ROIs that match the activated ROI signal.
+%     temp_var      = sum( mean_spindle_activity == ROIs_activated(j, :),2);
+%     ROI_idx       = temp_var == win_length;
+%     ROI_list      = (1:roinr)'; 
+%     ROIs_activated_idx(j) = ROI_list(ROI_idx);
+% end
+% 
+% %list the identity of SWR-inhibited ROIs
+% ROIs_suppressed_idx = zeros(size(ROIs_suppressed,1),1);
+% for j = 1:size(ROIs_suppressed,1)
+%     temp_var      = sum( mean_spindle_activity == ROIs_suppressed(j, :),2);
+%     ROI_idx       = temp_var == win_length;
+%     ROI_list      = (1:roinr)'; 
+%     ROIs_suppressed_idx(j) = ROI_list(ROI_idx);
+% end
+% %list the identity of unclassified ROIs
+% ROIs_unclassified_idx = zeros(size(ROIs_unclassified,1),1);
+% for j = 1:size(ROIs_unclassified,1)
+%     temp_var      = sum( mean_swr_activity == ROIs_unclassified(j, :),2);
+%     ROI_idx       = temp_var == win_length;
+%     ROI_list      = (1:roinr)'; 
+%     ROIs_unclassified_idx(j) = ROI_list(ROI_idx);
+% end
+% %% Find corresponding dF/F / deconvolved dF/F signals for plotting
+% 
+% % first find the spindle segments for activated ROIs
+% activated_sig_to_plot = zeros(length(ROIs_activated_idx), win_length);
+% if ~isempty(ROIs_activated_idx) 
+%     % same code to extract 2P spindle segments as above
+%     for i = 1:length(ROIs_activated_idx)
+%         mod_ROI = signal_plot(ROIs_activated_idx(i),:);
+%         for spindle_nr = 1:length(spindleIdxStart)
+%             spindle_window_start = spindleIdxStart(spindle_nr) - (nr_of_seconds*31); 
+%             spindle_window_end = spindleIdxStart(spindle_nr) + (nr_of_seconds*31); 
+%             if spindle_window_start > 1 && spindle_window_end < length(signal_for_an)
+%                 spindle_activity(spindle_nr, :) = ...
+%                     mod_ROI(spindle_window_start:spindle_window_end); 
+%             end
+%         end
+%         activated_sig_to_plot(i,:) = nanmean(spindle_activity);
+%     end
+% end
+% 
+% % ... and now for the spindle suppressed ROis
+% suppressed_sig_to_plot = zeros(length(ROIs_suppressed_idx), win_length);
+% if ~isempty(ROIs_suppressed_idx) 
+%     for i = 1:length(ROIs_suppressed_idx)
+%         mod_ROI = signal_plot(ROIs_suppressed_idx(i),:);
+%         for spindle_nr = 1:length(spindleIdxStart)
+%             spindle_window_start = spindleIdxStart(spindle_nr) - (nr_of_seconds*31); 
+%             spindle_window_end = spindleIdxStart(spindle_nr) + (nr_of_seconds*31); 
+%             if spindle_window_start > 1 && spindle_window_end < length(signal_for_an)
+%                 spindle_activity(spindle_nr, :) = ...
+%                     mod_ROI(spindle_window_start:spindle_window_end); 
+%             end
+%         end
+%         suppressed_sig_to_plot(i,:) = nanmean(spindle_activity);
+%     end
+% end
+% 
+% 
+% 
+% output = {ROIs_activated, ROIs_activated_idx, ROIs_suppressed,ROIs_suppressed_idx, ...
+%     activated_sig_to_plot, suppressed_sig_to_plot, ROIs_unclassified, ...
+%     ROIs_unclassified_idx};
+% %% Plotting
+% 
+% % figure,
+% % subplot(241)
+% % imagesc(activated_ROIs)
+% % xticks(1:31:((nr_of_seconds*31)*2+1))
+% % set(gca, 'XTickLabel', (-(nr_of_seconds):1:nr_of_seconds))
+% % ylabel(text)
+% % xlabel('Time from spindle onset (s)')
+% % 
+% % subplot(242)
+% % imagesc(activated_sig_to_plot)
+% % xticks(1:31:((nr_of_seconds*31)*2+1))
+% % set(gca, 'XTickLabel', (-(nr_of_seconds):1:nr_of_seconds))
+% % ylabel(text2)
+% % xlabel('Time from spindle onset (s)')
+% % 
+% % subplot(243)
+% % imagesc(suppressed_ROIs)
+% % xticks(1:31:((nr_of_seconds*31)*2+1))
+% % set(gca, 'XTickLabel', (-(nr_of_seconds):1:nr_of_seconds))
+% % ylabel(text)
+% % xlabel('Time from spindle onset (s)')
+% % 
+% % subplot(244)
+% % imagesc(suppressed_sig_to_plot)
+% % xticks(1:31:((nr_of_seconds*31)*2+1))
+% % set(gca, 'XTickLabel', (-(nr_of_seconds):1:nr_of_seconds))
+% % ylabel(text2)
+% % xlabel('Time from spindle onset (s)')
+% %% Plotting
+% 
+% figure, 
+% if ~isempty(ROIs_activated) && size(ROIs_activated,1) > 1
+%     subplot(241)
+%     plot(time,ROIs_activated' + (size(ROIs_activated,1):-1:1)*.005)
+%     set(gca, 'xlim', [time(1), time(end)])
+% 
+%     subplot(245)
+%     shadedErrorBar(time, nanmean(ROIs_activated), ...
+%         std(ROIs_activated)./sqrt(size(ROIs_activated,1)) ,'lineprops', 'b');
+%     xlabel('Time from spindle onset (s)')
+%     ylabel(label1)
+%     set(gca, 'xlim',[min(time) max(time)])
+% 
+%     subplot(242)
+%     plot(time,activated_sig_to_plot' + (size(activated_sig_to_plot,1):-1:1)*.03)
+%     set(gca, 'xlim', [time(1), time(end)])
+%     
+%     subplot(246)
+%     shadedErrorBar(time, nanmean(activated_sig_to_plot), ...
+%         std(activated_sig_to_plot)./sqrt(size(activated_sig_to_plot,1)) ,'lineprops', 'b');
+%     xlabel('Time from spindle onset (s)')
+%     ylabel(label1)
+%     set(gca, 'xlim',[min(time) max(time)])
+% end
+% 
+% if ~isempty(ROIs_suppressed) && size(ROIs_suppressed,1) > 1
+%     subplot(243)
+%     plot(time,ROIs_suppressed' + (size(ROIs_suppressed,1):-1:1)*.005)
+%     set(gca, 'xlim', [time(1), time(end)])
+% 
+%     subplot(244)
+%     plot(time,suppressed_sig_to_plot' + (size(suppressed_sig_to_plot,1):-1:1)*.03)
+%     set(gca, 'xlim', [time(1), time(end)])
+%  
+%     subplot(247)
+%     shadedErrorBar(time, nanmean(ROIs_suppressed), ...
+%         std(ROIs_suppressed)./sqrt(size(ROIs_suppressed,1)) ,'lineprops', 'b');
+%     xlabel('Time from spindle onset (s)')
+%     ylabel(label1)
+%     set(gca, 'xlim',[min(time) max(time)])
+% 
+%     subplot(248)
+%     shadedErrorBar(time, nanmean(suppressed_sig_to_plot), ...
+%         std(suppressed_sig_to_plot)./sqrt(size(suppressed_sig_to_plot,1)) ,'lineprops', 'b');
+%     xlabel('Time from spindle onset (s)')
+%     ylabel(label2)
+%     set(gca, 'xlim',[min(time) max(time)])
+% end
+% 
+% 
+% 
+% 
