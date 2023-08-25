@@ -1,4 +1,4 @@
-function output = lfp_deltaband(sData)
+function sData = lfp_deltaband(sData)
 
 % Written by Christoffer Berge | Vervaeke lab
 
