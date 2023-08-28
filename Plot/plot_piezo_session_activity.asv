@@ -106,32 +106,29 @@ for current_plane = plane_nr
     c.Position(1) = 0.92;
     c.Position(3) = 0.01;
 
-    signal_to_plot = mean(temp_dff, 'omitnan');
-
     h(subplot_nr*2+1) = subplot( numel(plane_nr)*2 + 1, 1, subplot_nr*2+1) ;
-    plot(time_vector, signal_to_plot)
+    plot(time_vector, mean(temp_dff, 'omitnan'))
     set(gca, 'xlim', [time_vector(1) time_vector(end)])
     
     % Plot states on top of mean activity traces 
-    max_y = max( signal_to_plot, [], 2);
-    min_y = min ( signal_to_plot, [], 2);
-
+    max_y = max( mean(temp_dff, 'omitnan'));
+    min_y = min ( mean(temp_dff, 'omitnan'))
     if isfield(sData, 'episodes')
         % NREM bouts
         for ep_nr = 1:length(NREM_start_end)
             x = [NREM_start_end(ep_nr,1) NREM_start_end(ep_nr,1) NREM_start_end(ep_nr,2) NREM_start_end(ep_nr,2)];
-            y = [min_y max_y max_y min_y];
+            y = [-1 2 2 -1];
             patch(x, y, 'green', 'edgecolor', 'none', 'FaceAlpha', .2);
         end
         % REM bouts
         if size(REM_start_end(:,1),1) == 1
             a = [REM_start_end(1,1) REM_start_end(1,1) REM_start_end(1,2) REM_start_end(1,2)];
-            b =[min_y max_y max_y min_y];
+            b = [-1 2 2 -1];
             patch(a, b, 'red', 'edgecolor', 'none', 'FaceAlpha', .2);
         else
             for ep_nr = 1:length(REM_start_end)
                 a = [REM_start_end(ep_nr,1) REM_start_end(ep_nr,1) REM_start_end(ep_nr,2) REM_start_end(ep_nr,2)];
-                b = [min_y max_y max_y min_y];
+                b = [-1 2 2 -1];
                 patch(a, b, 'red', 'edgecolor', 'none', 'FaceAlpha', .2);
             end
         end

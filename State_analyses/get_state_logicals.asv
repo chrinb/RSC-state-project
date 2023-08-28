@@ -113,12 +113,8 @@ for state_nr = 1:4
         % Create new logical (now in 2P time)
         state_vec_2P = false(1, frames_in_rec);
 
-        % Sometimes EventStartIdx is a column variable, other times a row variable
-        % Find the index of the largest dimension to find out which
-        % dimension to loop over
-        [~, maxE_idx] = max( size(eventStartIdx));
-
-        for i = 1:size(eventStartIdx, maxE_idx)
+        % Sometimes EventStartIdx 
+        for i = 1:size(eventStartIdx,2)
             state_vec_2P( eventStartIdx(i):eventStopIdx(i)) = true;
         end
     
