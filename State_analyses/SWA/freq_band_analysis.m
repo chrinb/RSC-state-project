@@ -74,6 +74,7 @@ output.state_ecog_filt      = state_ecog_filt;
 output.state_ecog_filt_ampl = state_ecog_filt_ampl;
 
 output.ep_duration         = state_snippet;
+output.state_times         = state_times;
 
 
     
