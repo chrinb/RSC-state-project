@@ -85,10 +85,10 @@ filtpow_sigma = filt_sigma_pow(1:length(hz_sigma));
 % Filter LFP and ECoG in slow oscillation frequency band
 tic;
 so_lfp_filtsig  = filtfilt(filtkern_so, 1, lfp);
-so_ecog_filtsig  = filtfilt(filtkern_so, 1, ecog);
+so_ecog_filtsig = filtfilt(filtkern_so, 1, ecog);
 
 % Filter LFP in delta & sigma band
-delta_LFP_filtsig  = filtfilt(filtkern_delta, 1, lfp);
+delta_LFP_filtsig = filtfilt(filtkern_delta, 1, lfp);
 sigma_LFP_filtsig = filtfilt(filtkern_sigma, 1, lfp);
 
 toc;
