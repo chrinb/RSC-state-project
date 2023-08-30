@@ -1,4 +1,4 @@
-function [mean_pow_mat, mean_dff_mat] = binned_theta_dff_analysis(sData, params)
+function [mean_pow_vec, mean_dff_vec] = binned_theta_dff_analysis(sData, params)
 
 % Written by Christoffer Berge | Vervaeke lab
 
@@ -121,9 +121,9 @@ for ep_nr = 1:size(state_data.(txt), 1)
 
 end
 
-% Convert from cell array to matrix
-mean_pow_mat = cell2mat( mean_pow_cell);
-mean_dff_mat = cell2mat( mean_dff_cell);
+% Concatenate mean binned power and DF/F values into vector shape
+mean_pow_vec = horzcat( mean_pow_cell{:});
+mean_dff_vec = horzcat( mean_dff_cell{:});
 
 
 %% Calculate linear regression

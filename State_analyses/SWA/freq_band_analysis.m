@@ -10,6 +10,9 @@ function output = freq_band_analysis(sData, params)
 % Frequency band parameter input specifices which frequency and states to 
 % analyze. 
 switch params.freq_band
+    case 'SO'
+        freq_band = 'soband';
+        state_times = nrem_sleep(sData, 1);
     case 'delta'
         freq_band = 'deltaband';
         state_times = nrem_sleep(sData, 1);
