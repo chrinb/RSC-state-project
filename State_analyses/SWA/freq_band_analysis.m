@@ -57,7 +57,7 @@ for state_ep_nr = 1:size(state_times,1)
         % Extract raw, theta band, and theta amplitude signal from ECoG
         state_ecog{state_ep_nr}           = ecog(state_snippet{state_ep_nr});
         state_ecog_filt{state_ep_nr}      = ecog_filt(state_snippet{state_ep_nr});
-        state_ecog_filt_ampl{state_ep_nr} = abs( hilbert(lfp_filt(state_snippet{state_ep_nr})));
+        state_ecog_filt_ampl{state_ep_nr} = abs( hilbert(ecog_filt(state_snippet{state_ep_nr})));
 
     end
 end

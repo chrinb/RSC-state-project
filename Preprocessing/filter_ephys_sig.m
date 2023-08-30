@@ -8,9 +8,9 @@ function sData = filter_ephys_sig(varargin)
 sData = varargin{1,1};
 
 % Load signals and define variables 
-ECOG          = sData.ephysdata2.lfp;
-LFP           = sData.ephysdata.lfp;
-EMG           = sData.ephysdata3.lfp;
+lfp           = sData.ephysdata.lfp;
+ecog          = sData.ephysdata2.lfp;
+emg           = sData.ephysdata3.lfp;
 signal_length = length(sData.ephysdata.lfp);
 srate         = 2500;
 nyquist       = srate/2;
@@ -149,33 +149,33 @@ if length(varargin) > 1
 end
 %% Apply filter kernels to data
 % create 0.5-30 Hz bandpass-filtered signal
-ECOG_filtsig = filtfilt(filtkern_ECOG, 1, ECOG);
+ECOG_filtsig = filtfilt(filtkern_ECOG, 1, ecog);
 %LFP_filtsig = filtfilt(filtkern_LFP, 1, LFP);
 %LFP4_filtsig = filtfilt(filtkern_LFP, 1, LFP4);
 
 % create 100-1000 Hz bandpass-filtered EMG signal
-EMG_filtsig = filtfilt(filtkern_EMG, 1, EMG);
+EMG_filtsig = filtfilt(filtkern_EMG, 1, emg);
 
 % create delta-frequency filtered signal
-delta_ECOG_filtsig = filtfilt(filtkern_delta, 1, ECOG);
-delta_LFP_filtsig  = filtfilt(filtkern_delta, 1, LFP);
+delta_ecog_filtsig = filtfilt(filtkern_delta, 1, ecog);
+delta_lfp_filtsig  = filtfilt(filtkern_delta, 1, lfp);
 %delta_LFP3_filtsig = filtfilt(filtkern_delta, 1, LFP);
 %delta_LFP4_filtsig = filtfilt(filtkern_delta, 1, LFP4);
 
 % create theta-frequency filtered signal
-theta_ECOG_filtsig = filtfilt(filtkern_theta, 1, ECOG);
-theta_LFP_filtsig = filtfilt(filtkern_theta, 1, LFP);
+theta_ecog_filtsig = filtfilt(filtkern_theta, 1, ecog);
+theta_lfp_filtsig = filtfilt(filtkern_theta, 1, lfp);
 %theta_LFP4_filtsig = filtfilt(filtkern_theta, 1, LFP4);
 
 % create sigma-frequency filtered signal
-sigma_ECOG_filtsig = filtfilt(filtkern_sigma, 1, ECOG);
-sigma2_ECOG_filtsig = filtfilt(filtkern_sigma2, 1, ECOG);
+sigma_ecog_filtsig = filtfilt(filtkern_sigma, 1, ecog);
+sigma2_ecog_filtsig = filtfilt(filtkern_sigma2, 1, ecog);
 %sigma_LFP_filtsig = filtfilt(filtkern_sigma, 1, LFP);
 %sigma_LFP4_filtsig = filtfilt(filtkern_sigma, 1, LFP4);
 
 % create ripple-frequency filtered signal
-ripple_filtsig = filtfilt(filtkern_ripple, 1, LFP);
-ripple_2_filtsig = filtfilt(filtkern_ripple, 1 , ECOG);
+ripple_filtsig = filtfilt(filtkern_ripple, 1, lfp);
+ripple_2_filtsig = filtfilt(filtkern_ripple, 1 , ecog);
 
 % 0.5-30 Hz ECoG
 sData.ephysdata2.lfpFilt = ECOG_filtsig;
@@ -184,15 +184,15 @@ sData.ephysdata2.lfpFilt = ECOG_filtsig;
 sData.ephysdata3.EMGfilt = EMG_filtsig;
 
 % Delta
-sData.ephysdata2.deltaband = delta_ECOG_filtsig;
-sData.ephysdata.deltaband  = delta_LFP_filtsig;
+sData.ephysdata2.deltaband = delta_ecog_filtsig;
+sData.ephysdata.deltaband  = delta_lfp_filtsig;
 % Theta
-sData.ephysdata.thetaband = theta_LFP_filtsig;
-sData.ephysdata2.thetaband = theta_ECOG_filtsig;
+sData.ephysdata.thetaband = theta_lfp_filtsig;
+sData.ephysdata2.thetaband = theta_ecog_filtsig;
 
 % Sigma
-sData.ephysdata2.sigmaband = sigma_ECOG_filtsig;
-sData.ephysdata2.sigmaband2 = sigma2_ECOG_filtsig;
+sData.ephysdata2.sigmaband = sigma_ecog_filtsig;
+sData.ephysdata2.sigmaband2 = sigma2_ecog_filtsig;
 
 % Ripple 
 sData.ephysdata.ripplefreq = ripple_filtsig;

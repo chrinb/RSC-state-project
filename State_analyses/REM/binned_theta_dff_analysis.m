@@ -37,7 +37,7 @@ end
 %% Bin REM theta power and DF/F and compute bin means
 
 % Create bin windows
-bin_length_sec = 2;
+bin_length_sec = params.bin_win;
 
 bin_win_imag  = round(imaging_sampling_rate*bin_length_sec);
 bin_win_ephys = 2500*bin_length_sec;
@@ -45,18 +45,24 @@ bin_win_ephys = 2500*bin_length_sec;
 params.state = 'REM';
 rem_data       = freq_band_analysis(sData, params);
 
-mean_pow_cell = cell( size(rem_data.state_lfp_filt_ampl, 1), 1);
-mean_dff_cell = cell( size(rem_data.state_lfp_filt_ampl, 1), 1);
+switch params.ephys_signal
+    case 'lfp'
+        txt = 'state_lfp_filt_ampl';
+    case 'ecog'
+        txt = 'state_ecog_filt_ampl';
+end
+mean_pow_cell = cell( size(rem_data.(txt), 1), 1);
+mean_dff_cell = cell( size(rem_data.(txt), 1), 1);
 
 % Loop over episodes
-for ep_nr = 1:size(rem_data.state_lfp_filt_ampl, 1)
+for ep_nr = 1:size(rem_data.(txt), 1)
     
     % Get data
-    tmp_data_ephys = rem_data.state_lfp_filt_ampl{ep_nr, 1};
+    tmp_data_ephys = rem_data.(txt){ep_nr, 1};
     
-    % Continue with analysis only if current REM data is NOT empty (if it
-    % is, the episode was skipped because it didn't fit the criteria).
-    if ~isempty(tmp_data_ephys)
+    % Check if REM data is empty (indicating that episode didn't fit
+    % criteria, or if DF/F is empty (cell type not present). 
+    if ~isempty(tmp_data_ephys) && ~isempty(dff)
 
         % Start with ephys data
 
@@ -106,8 +112,8 @@ for ep_nr = 1:size(rem_data.state_lfp_filt_ampl, 1)
         % and throw out additional bin data in the larger dataset. 
         min_bin_nr = min( [size(reshaped_data_imag, 2), size(reshaped_data_ephys, 2)]);
 
-        mean_pow_cell = mean_pow_cell{ep_nr, 1}(1:min_bin_nr);
-        mean_dff_cell = mean_dff_cell{ep_nr, 1}(1:min_bin_nr);
+        mean_pow_cell{ep_nr, 1} = mean_pow_cell{ep_nr, 1}(1:min_bin_nr);
+        mean_dff_cell{ep_nr, 1} = mean_dff_cell{ep_nr, 1}(1:min_bin_nr);
 
     end
 
