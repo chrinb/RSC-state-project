@@ -2,17 +2,23 @@ function output = freq_band_analysis(sData, params)
 
 % Written by Christoffer Berge | Vervaeke lab
 
-% Extract NREM snippet from CA1 LFP and cortical ECoG channel in sleep 
-% sessions. Exclude NREM episodes that are (1) ongoing at recording start, 
-% (2) continues past recording end, or (3) are < 30s in duration. 
+% Extract raw and filtered NREM/REM snippet(s) from CA1 LFP and cortical 
+% ECoG channel in sleep sessions. Exclude NREM/REM episodes that are (1) 
+% ongoing at recording start, (2) continues past recording end, or (3) 
+% are < 30s in duration. 
 
-% If selecting NREM, use delta band frequency signals for analysis. If REM,
-% use theta band signals. 
-switch params.state
-    case 'NREM'
+% Frequency band parameter input specifices which frequency and states to 
+% analyze. 
+switch params.freq_band
+    case 'delta'
         freq_band = 'deltaband';
-    case 'REM'
+        state_times = nrem_sleep(sData, 1);
+    case 'theta'
         freq_band = 'thetaband';
+        state_times = rem_sleep(sData);
+    case 'sigma'
+        freq_band = 'sigmaband';
+        state_times = nrem_sleep(sData, 1);
 end
 
 
@@ -22,13 +28,6 @@ ecog        = sData.ephysdata2.lfp;
 lfp_filt    = sData.ephysdata.(freq_band);
 ecog_filt   = sData.ephysdata2.(freq_band);
 srate       = 2500;
-
-% Get NREM/REM sleep start/stop times
-if strcmp(params.state, 'NREM')
-    state_times = nrem_sleep(sData, 1);
-elseif strcmp(params.state, 'REM')
-    state_times = rem_sleep(sData);
-end
 
 % Set a 5s threshold to skip REM episodes that extends before/after
 % recording start/end. 
@@ -47,6 +46,7 @@ for state_ep_nr = 1:size(state_times,1)
     % Check if episode fits criteria
     if tmp_state_times(1) > threshold && tmp_state_times(2) < size(lfp,1)-threshold && size(tmp_state_times(1):tmp_state_times(2),2) > 30*srate
         
+        % Get time points of episode
         state_snippet{state_ep_nr} = tmp_state_times(1):tmp_state_times(2);
         
         % Extract raw, theta band, and theta amplitude signal from LFP

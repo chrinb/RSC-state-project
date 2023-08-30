@@ -34,7 +34,7 @@ if unique(sData.imdata.plane_indices) > 1
     imaging_sampling_rate = imaging_sampling_rate/4;
 end
 
-%% Bin frequency band power and DF/F and compute mean per bin
+%% Bin frequency band power and DF/F and compute means
 
 % Create bin windows
 bin_length_sec = params.bin_win;
@@ -42,8 +42,7 @@ bin_length_sec = params.bin_win;
 bin_win_imag  = round(imaging_sampling_rate*bin_length_sec);
 bin_win_ephys = 2500*bin_length_sec;
 
-% Get state/frequency band-specific data
-state_data = freq_band_analysis(sData, params);
+state_data       = freq_band_analysis(sData, params);
 
 switch params.ephys_signal
     case 'lfp'
@@ -62,7 +61,7 @@ for ep_nr = 1:size(state_data.(txt), 1)
     % Get data
     tmp_data_ephys = state_data.(txt){ep_nr, 1};
     
-    % Check if state data is empty (indicating that episode didn't fit
+    % Check if REM data is empty (indicating that episode didn't fit
     % criteria, or if DF/F is empty (cell type not present). 
     if ~isempty(tmp_data_ephys) && ~isempty(dff)
 
@@ -89,7 +88,7 @@ for ep_nr = 1:size(state_data.(txt), 1)
         % Get start/end of episode in imaging time
         state_snippet_imaging = frames(state_data.state_times(ep_nr, 1)):frames(state_data.state_times(ep_nr, 2));
         
-        % Extract imaging data during episode and compute mean over ROIs
+        % Extract imaging data during REM episode and compute mean over ROIs
         tmp_data_imag = dff(:, state_snippet_imaging);
         tmp_data_imag = mean(tmp_data_imag, 1, 'omitnan');
         
