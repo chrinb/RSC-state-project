@@ -1,4 +1,4 @@
-function [mean_vec, SD_vec, plot_coordinates, c]  = episode_third_analysis(data)
+function [mean_vec, SD_vec, plot_coordinates, e]  = episode_third_analysis(data)
 
 % Written by Christoffer Berge | Vervaeke lab
 
@@ -39,7 +39,7 @@ plot_coordinates = round([plot_factor, (elements_per_part*2)-plot_factor,  (elem
 
 % If there are sufficient nr of observations, compute a test-statistic to
 % examine whether there are significant differences between the three parts
-c = [];
+e = [];
 
 if size(data,1) > 20
  
@@ -47,14 +47,20 @@ if size(data,1) > 20
     mean_pt2_dim2 = mean( part_2, 2);
     mean_pt3_dim2 = mean( part_3, 2);
 
-    % Kruskal-Wallis
-    [p, tbl, stats] = kruskalwallis( [mean_pt1_dim2, mean_pt2_dim2, mean_pt3_dim2]);
-    
-    c = multcompare(stats);
+%     % Kruskal-Wallis
+%     [p, tbl, stats] = kruskalwallis( [mean_pt1_dim2, mean_pt2_dim2, mean_pt3_dim2]);
+%     
+%     c = multcompare(stats);
+% 
+%     % One-way ANOVA
+%     [pA, tblA, statsA] = anova1( [mean_pt1_dim2, mean_pt2_dim2, mean_pt3_dim2]);
+%     d = multcompare(statsA);
 
-    % One-way ANOVA
-    [pA, tblA, statsA] = anova1( [mean_pt1_dim2, mean_pt2_dim2, mean_pt3_dim2]);
-
-    d = multcompare(statsA);
+    % As scores within each third not necessarily are normally distributed, and 
+    % the scores in each third are not independent (i.e. they are dependent, repeated
+    % measures), use non-paramatric Friedmans ANOVA to assess group
+    % differences
+    [pB, tblB, statsB] = friedman( [mean_pt1_dim2, mean_pt2_dim2, mean_pt3_dim2]);
+    e = multcompare(statsB);
 end
 

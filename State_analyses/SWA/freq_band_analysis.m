@@ -27,13 +27,17 @@ end
 % Select ephys signal
 switch params.ephys_signal
     case 'lfp'
-        signal         = sData.ephysdata.lfp;
-        signal_filt    = sData.ephysdata.(freq_band);
+        signal           = sData.ephysdata.lfp;
+        signal_filt      = sData.ephysdata.(freq_band);
     case 'ecog'
-        signal         = sData.ephysdata2.lfp;
-        signal_filt    = sData.ephysdata2.(freq_band);
+        signal           = sData.ephysdata2.lfp;
+        signal_filt      = sData.ephysdata2.(freq_band);
 end
 
+% Compute the amplitude envelope (power) of filtered signal
+signal_filt_ampl = abs( hilbert(signal_filt));
+
+% Ephys sample rate
 srate = 2500;
 
 % Set a 3s threshold to skip REM episodes that extends before/after
@@ -44,8 +48,8 @@ threshold = srate*3;
 ep_duration_min = 10*srate;
 
 % Preallocate
-[state_ephys, state_ephys_filt, state_ephys_filt_ampl, state_ecog, state_ecog_filt, ...
-    state_ecog_filt_ampl, state_snippet] = deal( cell( size(state_times,1), 1));
+[state_ephys, state_ephys_filt, state_ephys_filt_ampl, state_snippet] ...
+    = deal( cell( size(state_times,1), 1));
 
 % Loop over episodes
 for state_ep_nr = 1:size(state_times,1)
@@ -65,7 +69,7 @@ for state_ep_nr = 1:size(state_times,1)
         % signal
         state_ephys{state_ep_nr}           = signal(state_snippet{state_ep_nr});
         state_ephys_filt{state_ep_nr}      = signal_filt(state_snippet{state_ep_nr});
-        state_ephys_filt_ampl{state_ep_nr} = abs( hilbert(signal_filt(state_snippet{state_ep_nr})));
+        state_ephys_filt_ampl{state_ep_nr} = signal_filt_ampl(state_snippet{state_ep_nr});
 
         % Extract raw, theta band, and theta amplitude signal from ECoG
 %         state_ecog{state_ep_nr}           = signal(state_snippet{state_ep_nr});
