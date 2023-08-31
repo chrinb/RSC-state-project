@@ -53,8 +53,7 @@ switch params.ephys_signal
 end
 
 % Preallocate
-mean_pow_cell = cell( size(state_data.(txt), 1), 1);
-mean_dff_cell = cell( size(state_data.(txt), 1), 1);
+[mean_pow_cell, mean_dff_cell] = deal( cell( size(state_data.(txt), 1), 1));
 
 % Loop over episodes
 for ep_nr = 1:size(state_data.(txt), 1)

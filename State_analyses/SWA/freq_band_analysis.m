@@ -12,16 +12,16 @@ function output = freq_band_analysis(sData, params)
 switch params.freq_band
     case 'SO'
         freq_band = 'soband';
-        state_times = nrem_sleep(sData, 1);
+        state_times = nrem_sleep(sData);
     case 'delta'
         freq_band = 'deltaband';
-        state_times = nrem_sleep(sData, 1);
+        state_times = nrem_sleep(sData);
     case 'theta'
         freq_band = 'thetaband';
         state_times = rem_sleep(sData);
     case 'sigma'
         freq_band = 'sigmaband';
-        state_times = nrem_sleep(sData, 1);
+        state_times = nrem_sleep(sData);
 end
 
 
@@ -32,9 +32,12 @@ lfp_filt    = sData.ephysdata.(freq_band);
 ecog_filt   = sData.ephysdata2.(freq_band);
 srate       = 2500;
 
-% Set a 5s threshold to skip REM episodes that extends before/after
+% Set a 3s threshold to skip REM episodes that extends before/after
 % recording start/end. 
-threshold = srate*5;
+threshold = srate*3;
+
+% Set minimum duration for episodes to be analyzed
+ep_duration_min = 10*srate;
 
 % Preallocate
 [state_lfp, state_lfp_filt, state_lfp_filt_ampl, state_ecog, state_ecog_filt, ...
@@ -46,8 +49,10 @@ for state_ep_nr = 1:size(state_times,1)
     % Get start/stop times of current episode
     tmp_state_times = [state_times(state_ep_nr, 1) state_times(state_ep_nr, 2)];
     
+    % NEED BETTER WAY TO SORT EPISODES
+
     % Check if episode fits criteria
-    if tmp_state_times(1) > threshold && tmp_state_times(2) < size(lfp,1)-threshold && size(tmp_state_times(1):tmp_state_times(2),2) > 30*srate
+    if tmp_state_times(1) > threshold && tmp_state_times(2) < size(lfp,1)-threshold && size(tmp_state_times(1):tmp_state_times(2),2) > ep_duration_min
         
         % Get time points of episode
         state_snippet{state_ep_nr} = tmp_state_times(1):tmp_state_times(2);
