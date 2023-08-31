@@ -46,7 +46,7 @@ for session_nr = 1:num_sessions
     final_idx = (log_idx1 == log_idx2);
     
     % Use this index/indices to find the state vector 
-    tmp_state = tmp.state_lfp_filt_ampl(final_idx);
+    tmp_state = tmp.state_ephys_filt_ampl(final_idx);
     
     % Loop over state episodes and pad with NaNs
     for ep_nr = 1:size(tmp_state,1)

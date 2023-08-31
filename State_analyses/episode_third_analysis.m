@@ -55,6 +55,6 @@ if size(data,1) > 20
     % One-way ANOVA
     [pA, tblA, statsA] = anova1( [mean_pt1_dim2, mean_pt2_dim2, mean_pt3_dim2]);
 
-    d = multcompare(statsA)
+    d = multcompare(statsA);
 end
 

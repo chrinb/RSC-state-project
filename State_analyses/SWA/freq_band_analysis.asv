@@ -24,17 +24,19 @@ switch params.freq_band
         state_times = nrem_sleep(sData);
 end
 
-% Select ephys signal
 switch params.ephys_signal
     case 'lfp'
-        signal         = sData.ephysdata.lfp;
-        signal_filt    = sData.ephysdata.(freq_band);
-    case 'ecog'
-        signal         = sData.ephysdata2.lfp;
-        signal_filt    = sData.ephysdata2.(freq_band);
-end
+        lfp         = sData.ephysdata.lfp;
+        lfp_filt    = sData.ephysdata.(freq_band);
 
-srate = 2500;
+
+
+% Load variables
+lfp         = sData.ephysdata.lfp;
+ecog        = sData.ephysdata2.lfp;
+lfp_filt    = sData.ephysdata.(freq_band);
+ecog_filt   = sData.ephysdata2.(freq_band);
+srate       = 2500;
 
 % Set a 3s threshold to skip REM episodes that extends before/after
 % recording start/end. 
@@ -44,7 +46,7 @@ threshold = srate*3;
 ep_duration_min = 10*srate;
 
 % Preallocate
-[state_ephys, state_ephys_filt, state_ephys_filt_ampl, state_ecog, state_ecog_filt, ...
+[state_lfp, state_lfp_filt, state_lfp_filt_ampl, state_ecog, state_ecog_filt, ...
     state_ecog_filt_ampl, state_snippet] = deal( cell( size(state_times,1), 1));
 
 % Loop over episodes
@@ -56,21 +58,20 @@ for state_ep_nr = 1:size(state_times,1)
     % NEED BETTER WAY TO SORT EPISODES
 
     % Check if episode fits criteria
-    if tmp_state_times(1) > threshold && tmp_state_times(2) < size(signal,1)-threshold && size(tmp_state_times(1):tmp_state_times(2),2) > ep_duration_min
+    if tmp_state_times(1) > threshold && tmp_state_times(2) < size(lfp,1)-threshold && size(tmp_state_times(1):tmp_state_times(2),2) > ep_duration_min
         
         % Get time points of episode
         state_snippet{state_ep_nr} = tmp_state_times(1):tmp_state_times(2);
         
-        % Extract raw, frequency band, and frequency amplitude signal from
-        % signal
-        state_ephys{state_ep_nr}           = signal(state_snippet{state_ep_nr});
-        state_ephys_filt{state_ep_nr}      = signal_filt(state_snippet{state_ep_nr});
-        state_ephys_filt_ampl{state_ep_nr} = abs( hilbert(signal_filt(state_snippet{state_ep_nr})));
+        % Extract raw, theta band, and theta amplitude signal from LFP
+        state_lfp{state_ep_nr}           = lfp(state_snippet{state_ep_nr});
+        state_lfp_filt{state_ep_nr}      = lfp_filt(state_snippet{state_ep_nr});
+        state_lfp_filt_ampl{state_ep_nr} = abs( hilbert(lfp_filt(state_snippet{state_ep_nr})));
 
         % Extract raw, theta band, and theta amplitude signal from ECoG
-%         state_ecog{state_ep_nr}           = signal(state_snippet{state_ep_nr});
-%         state_ecog_filt{state_ep_nr}      = signal_filt(state_snippet{state_ep_nr});
-%         state_ecog_filt_ampl{state_ep_nr} = abs( hilbert(signal_filt(state_snippet{state_ep_nr})));
+        state_ecog{state_ep_nr}           = ecog(state_snippet{state_ep_nr});
+        state_ecog_filt{state_ep_nr}      = ecog_filt(state_snippet{state_ep_nr});
+        state_ecog_filt_ampl{state_ep_nr} = abs( hilbert(ecog_filt(state_snippet{state_ep_nr})));
 
     end
 end
@@ -78,13 +79,13 @@ end
 % Store results in struct
 output = struct();
 
-output.state_ephys           = state_ephys;
-output.state_ephys_filt      = state_ephys_filt;
-output.state_ephys_filt_ampl = state_ephys_filt_ampl;
+output.state_lfp           = state_lfp;
+output.state_lfp_filt      = state_lfp_filt;
+output.state_lfp_filt_ampl = state_lfp_filt_ampl;
 
-% output.state_ecog           = state_ecog;
-% output.state_ecog_filt      = state_ecog_filt;
-% output.state_ecog_filt_ampl = state_ecog_filt_ampl;
+output.state_ecog           = state_ecog;
+output.state_ecog_filt      = state_ecog_filt;
+output.state_ecog_filt_ampl = state_ecog_filt_ampl;
 
 output.ep_duration         = state_snippet;
 output.state_times         = state_times;
