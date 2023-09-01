@@ -1,4 +1,4 @@
-function [mean_vec, SD_vec, plot_coordinates, e]  = episode_third_analysis(data)
+function [mean_vec, SD_vec, SEM_vec, plot_coordinates, e]  = episode_third_analysis(data)
 
 % Written by Christoffer Berge | Vervaeke lab
 
