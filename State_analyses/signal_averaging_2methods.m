@@ -2,11 +2,13 @@ function  output = signal_averaging_2methods(num_sessions, data)
 
 % Written by Christoffer Berge | Vervaeke lab
 
-% Function that computes average of data of various lengths
-% (for example due to sleep episodes of different lengths) using two
-% strategies: First find the longest data vector (i.e. longest episode) and
-% then either (2) pad the shorter ones with NaNs, or (2) interpolate the
-% shorter ones so all have the same length (normalized).
+%{
+Function that computes average of data of various lengths
+(for example due to sleep episodes of different lengths) using two
+strategies: First find the longest data vector (i.e. longest episode) and
+then either (2) pad the shorter ones with NaNs, or (2) interpolate the
+shorter ones so all have the same length (normalized).
+%}
 
 % Preallocate
 state_durations = zeros( num_sessions, 1 );

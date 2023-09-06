@@ -11,17 +11,23 @@ function output = freq_band_analysis(sData, params)
 % analyze. 
 switch params.freq_band
     case 'SO'
-        freq_band = 'soband';
-        state_times = nrem_sleep(sData);
+        freq_band    = 'soband';
+        state_times  = nrem_sleep(sData);
+        duration_lim = 10; % min 10 s episode for NREM
     case 'delta'
-        freq_band = 'deltaband';
-        state_times = nrem_sleep(sData);
+        freq_band    = 'deltaband';
+        state_times  = nrem_sleep(sData);
+        duration_lim = 10; % min 10 s episode for NREM
+
     case 'theta'
         freq_band = 'thetaband';
         state_times = rem_sleep(sData);
+        duration_lim     = 30; % min 30 s episode for REM
     case 'sigma'
-        freq_band = 'sigmaband';
-        state_times = nrem_sleep(sData);
+        freq_band    = 'sigmaband';
+        state_times  = nrem_sleep(sData);
+        duration_lim = 10; % min 10 s episode for NREM
+
 end
 
 % Select ephys signal
@@ -45,7 +51,7 @@ srate = 2500;
 threshold = srate*3;
 
 % Set minimum duration for episodes to be analyzed
-ep_duration_min = 10*srate;
+ep_duration_min = duration_lim*srate;
 
 % Preallocate
 [state_ephys, state_ephys_filt, state_ephys_filt_ampl, state_snippet] ...
@@ -71,11 +77,6 @@ for state_ep_nr = 1:size(state_times,1)
         state_ephys_filt{state_ep_nr}      = signal_filt(state_snippet{state_ep_nr});
         state_ephys_filt_ampl{state_ep_nr} = signal_filt_ampl(state_snippet{state_ep_nr});
 
-        % Extract raw, theta band, and theta amplitude signal from ECoG
-%         state_ecog{state_ep_nr}           = signal(state_snippet{state_ep_nr});
-%         state_ecog_filt{state_ep_nr}      = signal_filt(state_snippet{state_ep_nr});
-%         state_ecog_filt_ampl{state_ep_nr} = abs( hilbert(signal_filt(state_snippet{state_ep_nr})));
-
     end
 end
 
@@ -86,12 +87,9 @@ output.state_ephys           = state_ephys;
 output.state_ephys_filt      = state_ephys_filt;
 output.state_ephys_filt_ampl = state_ephys_filt_ampl;
 
-% output.state_ecog           = state_ecog;
-% output.state_ecog_filt      = state_ecog_filt;
-% output.state_ecog_filt_ampl = state_ecog_filt_ampl;
-
 output.ep_duration         = state_snippet;
 output.state_times         = state_times;
+output.signal              = signal;
 
 
     

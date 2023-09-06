@@ -2,14 +2,14 @@ function plotEphys(sData)
 
 % Plot ephys signals for visualization.
 
-LFP_filtsig = sData.ephysdata.lfpFilt;
+LFP_filtsig  = sData.ephysdata.lfpFilt;
 signalLength = length(sData.ephysdata.lfp);
-EMG_filtsig = sData.ephysdata.EMGfilt;
-sigma_LFP3 = sData.ephysdata.sigmaband;
-sigma_LFP2 = (sData.ephysdata.sigmaband_2);
-srate = 2500;
-delta_t = 1/srate; 
-tt = delta_t:delta_t:signalLength*delta_t;
+EMG_filtsig  = sData.ephysdata.EMGfilt;
+sigma_LFP3   = sData.ephysdata.sigmaband;
+sigma_LFP2   = (sData.ephysdata.sigmaband_2);
+srate        = 2500;
+delta_t      = 1/srate; 
+tt           = delta_t:delta_t:signalLength*delta_t;
 
 
 figure,
