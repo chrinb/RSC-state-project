@@ -106,6 +106,7 @@ end
 font_size = 16;
 
 figure, 
+
 hAx(1) = subplot(4, 1, 1);
 plot(time_vector, hypnogram_vector, 'LineWidth',1)
 set(gca, 'xlim', [time_vector(1) time_vector(end)])

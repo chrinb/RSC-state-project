@@ -60,7 +60,7 @@ if size(data,1) > 20
     % the scores in each third are not independent (i.e. they are dependent, repeated
     % measures), use non-paramatric Friedmans ANOVA to assess group
     % differences
-    [pB, tblB, statsB] = friedman( [mean_pt1_dim2, mean_pt2_dim2, mean_pt3_dim2]);
-    e = multcompare(statsB);
+    [pB, tblB, statsB] = friedman( [mean_pt1_dim2, mean_pt2_dim2, mean_pt3_dim2])
+        e = multcompare(statsB)
 end
 

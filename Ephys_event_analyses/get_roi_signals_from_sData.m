@@ -1,4 +1,4 @@
-    function [signal, text, opts, label3, rois_for_an, roiClustIDs, cells_to_exclude] = get_roi_signals_from_sData(varargin)
+    function [signal, params, label3, rois_for_an, roiClustIDs, cells_to_exclude] = get_roi_signals_from_sData(varargin)
 
 % Written by Christoffer Berge | Vervaeke Lab
 
@@ -7,23 +7,19 @@
 % excitatory vs. inhibitory cells) or access a subset of ROIs (NOT
 % FINISHED)
 
-sData = varargin{1,1};
-opts  = varargin{1,2};
-% try
-%     rois  = varargin{1,3};
-% catch
-% end
+sData  = varargin{1,1};
+params = varargin{1,2};
 
 %% Select which ROI signal to use
 checkParameter = @(param, n, str) (isnumeric(param) && param==n) || strcmp(param, str);
 
-if checkParameter(opts.signal_type, 1, 'deconv')
+if checkParameter(params.signal_type, 1, 'deconv')
     signal = sData.imdata.roiSignals(2).ciaDeconvolved;
     text   = 'deconv.';
-elseif checkParameter(opts.signal_type, 2, 'dff')
+elseif checkParameter(params.signal_type, 2, 'dff')
     signal = sData.imdata.roiSignals(2).newdff;
     text   = '';
-elseif checkParameter(opts.signal_type, 3, '')
+elseif checkParameter(params.signal_type, 3, '')
     prompt = sprintf('Type structname: '); 
     signal = input(prompt);
     text = [];
@@ -63,7 +59,7 @@ else
 end
 
 roiClustIDs = [];
-if checkParameter(opts.exp_type, 1, 'bulk') % bulk analysis
+if checkParameter(params.exp_type, 1, 'bulk') % bulk analysis
 
     % In the case of axon imaging sessions, check if there is a bulk axon
     % signal and use that.  
@@ -77,7 +73,7 @@ if checkParameter(opts.exp_type, 1, 'bulk') % bulk analysis
         cells_to_exclude = [];
     end
 
-elseif checkParameter(opts.exp_type, 3, 'axon')   % axons
+elseif checkParameter(params.exp_type, 3, 'axon')   % axons
     
     % Check if there is a field in sData called 'mergedAxons', if not,
     % merge.
@@ -92,16 +88,16 @@ elseif checkParameter(opts.exp_type, 3, 'axon')   % axons
         % Cluster axons
         [merged_ROI_dff,merged_ROI_deconv, roiClustIDs] = hierClust_axons(ROImtx,1, sData, pc_rois);
         % Select either the merged DF/F or deconvolved signal
-        if checkParameter(opts.signal_type, 1, 'deconv')
+        if checkParameter(params.signal_type, 1, 'deconv')
             signal = merged_ROI_deconv;
-        elseif checkParameter(opts.signal_type, 2, 'dff')
+        elseif checkParameter(params.signal_type, 2, 'dff')
             signal = merged_ROI_dff;
         end
 
     else
-        if checkParameter(opts.signal_type, 1, 'deconv')
+        if checkParameter(params.signal_type, 1, 'deconv')
             signal = sData.imdata.roiSignals(2).mergedAxonsDec;
-        elseif checkParameter(opts.signal_type, 2, 'dff')
+        elseif checkParameter(params.signal_type, 2, 'dff')
             signal = sData.imdata.roiSignals(2).mergedAxonsDff;
 %             signal = sData.analysis.transients.sig_transients;
         end
@@ -118,23 +114,23 @@ end
 [pc_rois, in_rois] = remove_cells_longitudinal(sData);
 
 % Population analysis + select PCs
-if  checkParameter(opts.exp_type, 2, 'default') && checkParameter(opts.split_rois, 1 , 'principal cells')
+if  checkParameter(params.exp_type, 2, 'default') && checkParameter(params.split_rois, 1 , 'principal cells')
 %     [pc_rois, in_rois] = remove_cells(sData); % Select principal cells for analysis
     rois_for_an        = pc_rois;
     cells_to_exclude   = in_rois;
 % Population analysis + select INs
-elseif checkParameter(opts.exp_type, 2, 'default') && checkParameter(opts.split_rois, 2 , 'inhibitory cells')
+elseif checkParameter(params.exp_type, 2, 'default') && checkParameter(params.split_rois, 2 , 'inhibitory cells')
 %     [pc_rois, in_rois] = remove_cells(sData); % Select inhibitory cells for analysis
     rois_for_an        = in_rois;
     cells_to_exclude   = pc_rois;
 
 % Axon population analysis + get IN indicies
-elseif checkParameter(opts.exp_type, 3, 'axon')
+elseif checkParameter(params.exp_type, 3, 'axon')
 %     [~, in_rois]     = remove_cells(roi_arr); % Get IN indicies
 %     cells_to_exclude = in_rois;
     rois_for_an      = 1:size(signal,1); 
 
-elseif checkParameter(opts.exp_type, 1, 'bulk')
+elseif checkParameter(params.exp_type, 1, 'bulk')
     rois_for_an = 1:size(signal,1); % Select all ROIs (1 in the case of bulk analysis)
 end
 

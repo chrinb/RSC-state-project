@@ -10,10 +10,32 @@ function analysis_output = event_mod_an(varargin)
 
 sData  = varargin{1,1};
 params = varargin{1,2};
+% Check if user specified particular options for analysis. If not use
+% default options. 
+% if nargin > 1
+%     if isstruct( varargin{1,2} )
+%         params = varargin{1,2};
+%     else
+%         try
+%             params.exp_type           = varargin{1,2};
+%             params.signal_type        = varargin{1,3};
+%             params.split_rois         = varargin{1,4};
+%             params.swr_for_analysis   = varargin{1,5};
+%             params.swr_cluster_thresh = varargin{1,6};
+%             params.swr_awake_or_sleep = varargin{1,7};
+%         catch
+%         end
+%     end
+% end
+
 
 % Get ROI signals
-[signal, params, ~, rois_for_an, ~, ~] = get_roi_signals_from_sData(sData, params );
-
+% if nargin > 1 && isfield(params, 'preDef')
+[signal, ~, params, ~, rois_for_an, ~, ~] = get_roi_signals_from_sData(sData, params );
+% else
+%     [signal, ~, params, ~, rois_for_an, ~, ~] = ...
+%     get_roi_signals_from_sData(sData, get_event_analysis_options(varargin) );
+% end
 
 % Z-score data. 
 zscore_signal = bsxfun(@minus, signal, mean(signal,2) ); 
@@ -53,7 +75,8 @@ switch params.event_type
         
         time_win             = (93:124); % 0s to +1s after spindle onset
 
-    case 'SWA'
+    case 'SWA')
+
 end
 
 %% Run main analysis
