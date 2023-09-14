@@ -1,4 +1,4 @@
-function analysis_output = event_mod_an(varargin)
+function sData = event_mod_an(varargin)
 
 % Written by Christoffer Berge | Vervaeke Lab
 
@@ -13,7 +13,6 @@ params = varargin{1,2};
 
 % Get ROI signals
 [signal, params, ~, rois_for_an, ~, ~] = get_roi_signals_from_sData(sData, params );
-
 
 % Z-score data. 
 zscore_signal = bsxfun(@minus, signal, mean(signal,2) ); 
@@ -59,11 +58,11 @@ end
 %% Run main analysis
 
 % Preallocate
-signal_event_activity             = zeros(length(event_idx), win_length);
-signal_event_activity_zscore      = zeros(length(event_idx), win_length);
-signal_event_activity_mean        = zeros(size(signal,1), win_length);
-signal_event_activity_mean_zscore = zeros(size(signal,1), win_length);
-All_ROIs                          = zeros(nr_of_shuffles,1);
+signal_event_activity             = zeros( length(event_idx), win_length);
+signal_event_activity_zscore      = zeros( length(event_idx), win_length);
+signal_event_activity_mean        = zeros( size(signal,1), win_length);
+signal_event_activity_mean_zscore = zeros( size(signal,1), win_length);
+event_mod_ROI_idx                 = zeros( size(rois_for_an,1) ,1);
 
 % Loop over ROIs
 for roi_nr = rois_for_an
@@ -81,29 +80,16 @@ for roi_nr = rois_for_an
     signal_event_activity_mean_zscore(roi_nr,:) = mean(signal_event_activity_zscore, 'omitnan');
 
     % Shuffle analysis
-    All_ROIs = shuffle_analysis(win_length, nr_of_shuffles, signal_event_activity, ...
-        roi_nr, All_ROIs, signal_event_activity_mean, time_win, min_nr_events);
+    event_mod_ROI_idx = shuffle_analysis(win_length, nr_of_shuffles, signal_event_activity, ...
+        roi_nr, event_mod_ROI_idx, signal_event_activity_mean, time_win, min_nr_events);
 end
 
+event_mod_ROI_idx(event_mod_ROI_idx ==0) = [];
 
-% Get activated and suppressed ROIs
-sorted_rois         = split_modulated_rois(All_ROIs, win_length, signal_event_activity_mean, ...
-                    signal_event_activity_mean_zscore, params, sData, event_idx, nr_of_seconds);
+% Determine positive or negative event modulation
+[ROIs_activated_idx, ROIs_suppressed_idx] = split_modulated_rois(signal_event_activity_mean_zscore, win_length, params, event_mod_ROI_idx);
 
-% Store variables used in the analysis
-analysis_varables   = {All_ROIs, win_length, signal_event_activity_mean, ...
-                    signal_event_activity_mean_zscore, params, event_idx, nr_of_seconds};
-
-% Find percentage of activated or suppressed ROIs
-prc_mod = prc_mod_cells(rois_for_an, sorted_rois);
-
-%% Store output in struct
-analysis_output                   = struct;
-analysis_output.sorted_rois       = sorted_rois;
-analysis_output.analysis_varables = analysis_varables;
-analysis_output.params              = params;
-analysis_output.prc_mod           = prc_mod;
-analysis_output.rois              = rois_for_an;
-
-%% Plot results
-% check "plot_modulated_rois" function
+% Store results
+sData.imdata.([params.event_type, '_', params.cell_type, '_pos_cells']) = ROIs_activated_idx;
+sData.imdata.([params.event_type, '_', params.cell_type, '_neg_cells']) = ROIs_suppressed_idx;
+sData.imdata.([params.event_type, '_', params.cell_type, '_params'])     = params;

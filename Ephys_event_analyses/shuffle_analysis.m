@@ -27,24 +27,21 @@ event_check        = sum(sum_events >=1);
 if event_check >= min_nr_events
 
     % Smooth convolved PETH: 1 = no smoothing. 
-    smoothing_factor = 10;
-    peri_event_activity_single_ROI = ...
-        smoothdata( peri_event_activity_single_ROI, 2, 'gaussian',smoothing_factor);
+    smoothing_factor                    = 10;
+    peri_event_activity_single_ROI      = smoothdata( peri_event_activity_single_ROI, 2, 'gaussian',smoothing_factor);
     mean_peri_event_activity_single_ROI = mean(peri_event_activity_single_ROI);
-    % loop over shuffle iterations
-    % NOTE: DO YOU NEED TO RUN THROUGH SHUFFLE ITERATIONS????
+
+    % Create shuffled matrix and its mean
     for shuffle_iteration = 1:nr_of_shuffles
 
         % vector of random integers specifying the shifts to be applied
         % to each row of the PETH
-        id = randi(size(peri_event_activity_single_ROI,2),1,size(peri_event_activity_single_ROI,1));
+        id = randi( win_length, 1, size(peri_event_activity_single_ROI,1) );
 
         % shuffle the deconvolved activity vector in each row in the PETH
         % by the vector of random integers (preserves the 
         % temporal structure of the activity
-        shuffled_event_activity ...
-            = cell2mat(arrayfun(@(x) circshift(peri_event_activity_single_ROI(x,:),[1 id(x)]),...
-            (1:numel(id))','un',0));
+        shuffled_event_activity = cell2mat( arrayfun(@(x) circshift(peri_event_activity_single_ROI(x,:),[1 id(x)]), (1:numel(id))', 'UniformOutput', false));
 
         % Calculate and store the mean of the each shuffled PETH activity 
         mean_activity_all_shuffle_iterations(shuffle_iteration,:) = mean(shuffled_event_activity, 'omitnan');

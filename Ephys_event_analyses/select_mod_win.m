@@ -12,11 +12,11 @@ frames_in_1sec = 31;
 
 switch keyword
     case 'swr'
-        % window (-500ms to +500ms)
-        test_window    = (win_length/2) - frames_in_1sec/2 : (win_length/2) + frames_in_1sec/2;
+        % window (0 to +500ms)
+        test_window    = round( (win_length/2) : (win_length/2) + frames_in_1sec/2 );
     case 'spindle'
         % window 0ms - 1s
-        test_window    = round((win_length/2)):(round((win_length/2))+frames_in_1sec);
+        test_window    = round( (win_length/2) :  (win_length/2) + frames_in_1sec);
 end
 
                

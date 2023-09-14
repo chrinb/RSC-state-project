@@ -114,12 +114,12 @@ end
 [pc_rois, in_rois] = remove_cells_longitudinal(sData);
 
 % Population analysis + select PCs
-if  checkParameter(params.exp_type, 2, 'default') && checkParameter(params.split_rois, 1 , 'principal cells')
+if  checkParameter(params.exp_type, 2, 'default') && checkParameter(params.cell_type, 1 , 'pc')
 %     [pc_rois, in_rois] = remove_cells(sData); % Select principal cells for analysis
     rois_for_an        = pc_rois;
     cells_to_exclude   = in_rois;
 % Population analysis + select INs
-elseif checkParameter(params.exp_type, 2, 'default') && checkParameter(params.split_rois, 2 , 'inhibitory cells')
+elseif checkParameter(params.exp_type, 2, 'default') && checkParameter(params.cell_type, 2 , 'in')
 %     [pc_rois, in_rois] = remove_cells(sData); % Select inhibitory cells for analysis
     rois_for_an        = in_rois;
     cells_to_exclude   = pc_rois;

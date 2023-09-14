@@ -63,7 +63,7 @@ label1z = ['Mean z-scored '  params.signal_type];
 x_label = 'Time from SWR peak (sec)';
 
 figure,
-sgtitle([ sessionID, ', SWR n = ' num2str(length(RippleIdx)), ', ', params.split_rois], 'Interpreter', 'none') 
+sgtitle([ sessionID, ', SWR n = ' num2str(length(RippleIdx)), ', ', params.cell_type], 'Interpreter', 'none') 
 
 x1 = [time(1), time(end)];
 

@@ -10,39 +10,19 @@ roinr    = varargin{1,2};
 
 nr_of_seconds = 3;
 
-% Add roisignals folder to path to get roi array
-try
-    folder_name = dir;
-    addpath( [folder_name(1).folder '\roisignals'])
-catch
+% Get ROI signals
+switch params.cell_type
+    case 'axon'
+        dff = sData.imdata.roiSignals(2).mergedAxonsFiltDff;
+        dec = sData.imdata.roiSignals(2).mergedAxonsFiltDec;
+    case 'in'
+        dff = sData.imdata.roiSignals(2).newdff;
+        dec = sData.imdata.roiSignals(2).ciaDeconvolved;
+    case 'pc'
+        dff = sData.imdata.roiSignals(2).newdff;
+        dec = sData.imdata.roiSignals(2).ciaDeconvolved;
 end
 
-
-% If a third input argument called extract wanted cell type
-if nargin > 2
-    % Find indicies of principal cells
-    [pc_rois, in_rois] = remove_cells(sData.imdata.roi_arr);
-    if contains(varargin{1,3},'axon')
-%             ROImtx                     = sData.imdata.roiSignals(2).newdff(pc_rois,:);
-%             [dff,deconv, roiClustIDs, n_unchanged_rois] = hierClust_axons(ROImtx,1, sData, pc_rois);
-        dff    = sData.imdata.roiSignals(2).mergedAxonsDff;
-        deconv = sData.imdata.roiSignals(2).mergedAxonsDec; 
-    elseif contains(varargin{1,3},'pc')
-        dff    = sData.imdata.roiSignals(2).newdff(pc_rois,:);
-        deconv = sData.imdata.roiSignals(2).ciaDeconvolved(pc_rois,:);
-    elseif contains(varargin{1,3},'in')
-        dff    = sData.imdata.roiSignals(2).newdff(in_rois,:);
-        deconv = sData.imdata.roiSignals(2).ciaDeconvolved(in_rois,:);
-
-    end
-else
-    dff   = sData.imdata.roiSignals(2).newdff;
-    deconv = sData.imdata.roiSignals(2).ciaDeconvolved;
-end
-
-
-% temp = deconv > 0;
-% deconv = double(temp);
 %% Select SWRs for analysis
 opts.swr_for_analysis   = varargin{1,4};
 opts.swr_cluster_thresh = varargin{1,5};
