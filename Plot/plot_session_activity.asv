@@ -23,11 +23,9 @@ switch params.cell_type
         txt_pc              = 'Excitatory cells';
         signal_to_plot{2,:} = zscore( dff(in_rois,:), 0 ,2);
         txt_pc              = 'Inhibitory cells';
-        cmap                = [-1 2];
     case 'axon'
         signal_to_plot{1,:} = sData.imdata.roiSignals(2).mergedAxonsDffFilt;
         txt                 = 'Axons';
-        cmap                = [0 .5];
 end
 
 state_vectors_2p = get_state_logicals(sData);
@@ -134,8 +132,8 @@ for num_cell_types = 1:size(signal_to_plot,1)
     hAx(num_cell_types*2) = subplot( (num_signals*2)+2, 1,[num_cell_types, num_cell_types+1]+num_cell_types);
     imagesc(time_vector, y1, signal_to_plot{num_cell_types,:}(cell_type_sort_coefs_idx{num_cell_types},:)),
     ylabel('Neuron #', FontSize=16)
-    caxis(cmap)
-%     colormap(flipud(gray)) 
+    caxis([-1 2])
+    colormap("gray") 
     c = colorbar;
     c.Position(1) = 0.92;
     c.Position(3) = 0.01;

@@ -53,7 +53,7 @@ state_vectors = get_state_logicals(sData);
 
 %% Compute mean DF/F
 n_states    = 4;
-state_label = {'NREM', 'REM', 'active', 'quiet'};
+state_label = {'NREM', 'REM', 'quiet', 'active'};
 
 % Loop over the different states
 for state_nr = 1:n_states

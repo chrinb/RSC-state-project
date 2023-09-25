@@ -49,7 +49,7 @@ delta_t       = 1/srate; % Sampling interval
 tt            = delta_t:delta_t:signal_length*delta_t;
 
 % Start Begonia manual sleep scorer
-sData.episodes = begonia.processing.mark_sleep.mark_sleep(LFP2, tt, EMG, tt,run_speed,tt,[]);
+sData.episodes = begonia.processing.mark_sleep.mark_sleep(LFP2, tt, EMG, tt,run_speed,tt,sData.episodes);
 
 clearvars -except sData fileName
 save(fileName)
