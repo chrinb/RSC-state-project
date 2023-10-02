@@ -16,6 +16,7 @@ params = varargin{1,2};
 
 dff    = sData.imdata.roiSignals(2).newdff;
 deconv = sData.imdata.roiSignals(2).newdff;
+% dff  = okada(dff, 2);
 
 switch params.cell_type
     case {'pc', 'in'}
