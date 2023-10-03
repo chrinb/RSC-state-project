@@ -2,12 +2,12 @@ function sData = state_activity(varargin)
 
 % Written by Christoffer Berge | Vervaeke lab
 
-% Function that computes:
-% (1) mean DF/F during NREM, 
-% (2) Ca2+ events/deconvolved spike rate (Hz) during NREM 
-% (3) fraction of significant Ca2+ events during NREM.
-% (4) Max DF/F.
-% as a function of behavioral state. Add results to sData.analysis 
+%{
+Function computes (1) mean DF/F per ROI and on average per state, (2) 
+calcium transient & deconvolved event rate (Hz) per state, (3) proportion of 
+transient and deconvolved events per state, and (4) percentages of cells
+with maximal DF/F per state
+%}
 
 sData = varargin{1,1};
 
@@ -45,7 +45,7 @@ end
 % Z-score data
 dff_zscore = zscore(dff, [], 2);
 dec_zscore = zscore(dec, [], 2);
-% Nr of ROIs
+
 n_rois = size(dff,1);
 
 % Convert state logical vector from ephys to 2P time
@@ -54,6 +54,8 @@ state_vectors = get_state_logicals(sData);
 %% Compute mean DF/F
 n_states    = 4;
 state_label = {'NREM', 'REM', 'quiet', 'active'};
+
+imaging_sampling_rate = find_imaging_framerate(sData);
 
 % Loop over the different states
 for state_nr = 1:n_states
@@ -69,18 +71,29 @@ for state_nr = 1:n_states
         % Extract DF/F during 
         state_dff = dff(:, current_state_vec_2P);
         state_dec = dec(:, current_state_vec_2P);
+        
+        total_state_length_sec = size(state_dff,2)/ imaging_sampling_rate;
 
         state_dff_z = dff_zscore(:, current_state_vec_2P);
         state_dec_z = dec_zscore(:, current_state_vec_2P);
         
-        % First compute average of each state for each cell
-        single_roi_mean_dff   = mean(state_dff, 2, 'omitnan');
-        single_roi_mean_dff_z = mean(state_dff_z, 2, 'omitnan');
+        % Compute mean DF/F per ROI
+        roi_mean_dff   = mean(state_dff, 2, 'omitnan');
+        roi_mean_dff_z = mean(state_dff_z, 2, 'omitnan');
 
-        % Then average over cells to get the overall mean DF/F for all sessions
-        % in the session
-        state_mean_dff        =  mean(single_roi_mean_dff,'omitnan');
-        state_mean_dff_zscore =  mean(single_roi_mean_dff_z,'omitnan');
+        % Compute mean DF/F across all ROIS during session
+        state_mean_dff        =  mean(roi_mean_dff,'omitnan');
+        state_mean_dff_zscore =  mean(roi_mean_dff_z,'omitnan');
+
+        % Compute mean firing rate (Hz) per ROI
+
+        % Consider binarizing deconvolved signal based on some threshold (as
+        % Grosmark et al 2021)
+%         nrem_dec = dec;
+%         nrem_dec(dec > 0) = 1;
+        roi_dec_peaks      = arrayfun(@(x) findpeaks(state_dec(x,:)), (1:n_rois), 'uni', 0);
+        roi_dec_num_events = cell2mat( cellfun(@numel, roi_dec_peaks, 'uni', 0));
+        roi_dec_event_rate = roi_dec_num_events/total_state_length_sec;
 
         % Compute NREM event rate (Ca2+ transients and deconvolved) and total nr of
         % transients in NREM.
@@ -89,11 +102,7 @@ for state_nr = 1:n_states
         state_event_rate     = zeros(n_rois,1 );
         state_deconv_rate    = zeros(n_rois,1 );
         max_ampl_time       = zeros(n_rois,1);
-        [all_and_nrem_events,all_and_nrem_events_dec] = deal( zeros(n_rois,2 ));
-        
-        % Convert deconvolved events to 1s
-        nrem_dec = dec;
-        nrem_dec(dec > 0) = 1;
+        [all_and_nrem_events, all_and_nrem_events_dec] = deal( zeros(n_rois,2 ));
         
         % Loop over ROIs
         for roi_nr = 1:n_rois
