@@ -17,6 +17,14 @@ params = varargin{1,2};
 dff    = sData.imdata.roiSignals(2).newdff;
 deconv = sData.imdata.roiSignals(2).newdff;
 % dff  = okada(dff, 2);
+switch params.signal_type
+    case 'dff'
+        signal = dff;
+        axon_txt = 'DffFilt';
+    case 'deconv'
+        signal = deconv;
+        axon_txt = 'Dec';
+end
 
 switch params.cell_type
     case {'pc', 'in'}
@@ -26,9 +34,9 @@ switch params.cell_type
         txt_pc              = 'Inhibitory cells';
         cmap                = [-1 2];
     case 'axon'
-        signal_to_plot{1,:} = sData.imdata.roiSignals(2).mergedAxonsDffFilt;
+        signal_to_plot{1,:} = sData.imdata.roiSignals(2).(['mergedAxons',axon_txt]);
         txt                 = 'Axons';
-        cmap                = [0 .5];
+        cmap                = [0 .3];
 end
 
 state_vectors_2p = get_state_logicals(sData);

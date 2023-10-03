@@ -118,6 +118,8 @@ if strcmp(params.tag_ch1_grid_rois, 'yes')
     roi_group.roiArray{plane_nr, channel_nr} = roiStruct;
     
     save( sessionObjects.getDataFilePath('RoiArray'), '-struct', 'roi_group' );
+    sessionObjects.Data.resetCache('RoiArray')
+
 end
 %% Filter channel 2 ROIs by channel 1 grid ROIS to keep
 if strcmp(params.filter_ch2_rois, 'yes')

@@ -12,8 +12,6 @@ one of the channel 1 grid ROIs.
 % roi_array = sessionObjects.loadData('RoiArray');
 sData = sessionObjects.loadData('sData');
 
-sessionObjects.Data.resetCache('RoiArray')
-
 n_ch2_rois = size( roi_array(2).roiArray, 2);
 n_ch1_rois = size( roi_array(1).roiArray, 2);
 
@@ -45,15 +43,16 @@ for roi_nr_ch2 = 1:n_ch2_rois
 end
 
 %% Visualize remaning ROIs
-% roi_masks_to_keep = zeros( roi_array(1, 2).FovImageSize );
-% for i = 1:n_ch2_rois
-%     
-%     if list_of_rois(i) == 1
-%         roi_masks_to_keep = roi_masks_to_keep + roi_array(2).roiArray(1, i).mask ; 
-%     end
-% end
-% figure, imagesc(roi_masks_to_keep)
+roi_masks_to_keep = zeros( roi_array(1, 2).FovImageSize );
+for i = 1:n_ch2_rois
+    
+    if list_of_rois(i) == 1
+        roi_masks_to_keep = roi_masks_to_keep + roi_array(2).roiArray(1, i).mask ; 
+    end
+end
+figure, imagesc(roi_masks_to_keep)
 
 %% Store indices of ROIs to keep in sData
 sData.imdata.ch2_grid_classficiation = list_of_rois;
 sessionObjects.saveData('sData', sData);
+sessionObjects.Data.resetCache('sData');
