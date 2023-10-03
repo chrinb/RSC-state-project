@@ -1,4 +1,4 @@
-function sData = ca_transient_analysis(varargin)
+function sData = ca_transient_analysis(sData, params)
 
 % Written by Christoffer Berge | Vervaeke lab
 
@@ -11,30 +11,19 @@ function sData = ca_transient_analysis(varargin)
 % TO DO: is it worth splitting excitatory and inhibitory ROIS??? will need
 % to save them separately...
 
-% Load data
-sData = varargin{1,1};
-% try
-%     [pc_rois, in_rois] = remove_cells(sData.imdata.roi_arr);
-% catch
-%     [pc_rois, in_rois] = remove_cells(sData.imdata.roiArr);
-% end
-roi_arr = (sData.imdata.roi_classification == 1);
-% Load data
-if nargin > 1 
-    switch varargin{1,2}
-        case 'axon'
-         dff    = sData.imdata.roiSignals(2).mergedAxonsDffFilt;
-%          dff_in = sData.imdata.roiSignals(2).newdff(in_rois,:);  
-%          dff    = [dff; dff_in];
- 
-        case 'in'
-        dff = sData.imdata.roiSignals(2).newdff(in_rois,:);
-        case 'pc'
-        dff = sData.imdata.roiSignals(2).newdff(pc_rois,:);
-        case 'all'
-        dff = sData.imdata.roiSignals(2).newdff(roi_arr,:);    
-    end
-else
+
+%% Get exctitatory and inhibitory indices
+[pc_rois, in_rois] = remove_cells_longitudinal(sData);
+
+% Select data
+switch params.cell_type
+    case 'axon'
+     dff    = sData.imdata.roiSignals(2).mergedAxonsDffFilt;
+    case 'in'
+    dff = sData.imdata.roiSignals(2).newdff(in_rois,:);
+    case 'pc'
+    dff = sData.imdata.roiSignals(2).newdff(pc_rois,:);
+    case 'all'
     dff = sData.imdata.roiSignals(2).newdff;
 end
 

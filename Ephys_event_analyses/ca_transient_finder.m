@@ -1,34 +1,25 @@
-function sData = ca_transient_finder(varargin)
+function sData = ca_transient_finder(sData, params)
 
 % Written by Christoffer Berge | Vervaeke lab
 
 % Function that computes significant Ca2+ transients based on method
 % described in Pettit et al. (2022).
 
-sData = varargin{1,1};
-% try
-%     [pc_rois, in_rois] = remove_cells(sData.imdata.roi_arr);
-% catch
-%     [pc_rois, in_rois] = remove_cells(sData.imdata.roiArr);
-% end
-roi_arr = (sData.imdata.roi_classification == 1);
 
-% Load data
-if nargin > 1 
-    switch varargin{1,2}
-        case 'axon'
-         dff    = sData.imdata.roiSignals(2).mergedAxonsDffFilt;
-%          dff_in = sData.imdata.roiSignals(2).newdff(in_rois,:);  
-%          dff    = [dff; dff_in];
-        case 'in'
-        dff = sData.imdata.roiSignals(2).newdff(in_rois,:);
-        case 'pc'
-        dff = sData.imdata.roiSignals(2).newdff(pc_rois,:);
-        case 'all'
-        dff = sData.imdata.roiSignals(2).newdff(roi_arr,:);
-    end
-else
-    dff = sData.imdata.roiSignals(2).newdff(roi_arr,:);
+
+%% Get exctitatory and inhibitory indices
+[pc_rois, in_rois] = remove_cells_longitudinal(sData);
+
+% Select data
+switch params.cell_type
+    case 'axon'
+     dff    = sData.imdata.roiSignals(2).mergedAxonsDffFilt;
+    case 'in'
+    dff = sData.imdata.roiSignals(2).newdff(in_rois,:);
+    case 'pc'
+    dff = sData.imdata.roiSignals(2).newdff(pc_rois,:);
+    case 'all'
+    dff = sData.imdata.roiSignals(2).newdff;
 end
 
 % Standardize data (for each trace, subtract median and divide by standard
@@ -187,12 +178,12 @@ for roi_nr = 1:size(dff,1)
     roi_signal_sig_transients(frame_vec == 0) = NaN;
 
     % Set breakpoint here to plot the significant transients of current ROI
-%     figure(1), 
-%     hold on
-%     grayColor = [.6 .6 .6];
-%     plot(temp_plot_nonsig, 'Color', grayColor)
-%     plot(temp_plot_sig, 'r')
-%     clf
+    figure(1), 
+    hold on
+    grayColor = [.6 .6 .6];
+    plot(temp_plot_nonsig, 'Color', grayColor)
+    plot(temp_plot_sig, 'r')
+    clf
 
     roi_signal_nonsig_transients(frame_vec == 1) = NaN;
 

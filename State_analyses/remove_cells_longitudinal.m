@@ -12,24 +12,8 @@ function [pc_rois, in_rois] = remove_cells_longitudinal(sData)
 
 % If session is part of multi-day recordings, remove ROIs not present in
 % current session
-% long_roi_classification = [];
-
 if isfield(sData.imdata, 'roi_classification')
     long_roi_classification = sData.imdata.roi_classification;
-
-    % Add check for grid ROI classification if exists
-%     try grid_roi_classification = sData.imdata.ch2_grid_classficiation;
-%         tmp = [long_roi_classification, grid_roi_classification];
-%         long_roi_classification = sum(tmp,2) ==2;
-%     catch
-%     end
-% grid_roi_classification =[];
-
-% if isfield(sData.imdata, 'ch2_grid_classficiation')
-%     grid_roi_classification = sData.imdata.ch2_grid_classficiation;
-% end
-%         tmp = [long_roi_classification, grid_roi_classification];
-%         long_roi_classification = sum(tmp,2) ==2;
 
     % Out of ALL multi-day ROIs (roi_classification), index the different
     % cell types to find which of them are principal or inhibitory cells 
