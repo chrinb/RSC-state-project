@@ -39,7 +39,7 @@ sig_transients        = sData.imdata.roiSignals(2).([params.cell_type, '_sig_tra
 for roi_nr = 1:n_rois
     
     transient     = sig_transients(roi_nr,:);
-    transient_log = sData.analysis.transients.significant_transients_logical(roi_nr,:);
+    transient_log = sData.analysis.transients.sig_transients_logmat(roi_nr,:);
 
     % Compute transient durations
     [eventStartIdx, eventStopIdx ] = findTransitions( transient_log);
@@ -53,6 +53,6 @@ for roi_nr = 1:n_rois
 end
 
 % Store in sData
-sData.analysis.transients.([params.cell_type, 'transient_dur_sec']) = transient_duration_sec;
-sData.analysis.transients.([params.cell_type, 'transient_ampl'])    = transient_amplitudes;
-sData.analysis.transients.([params.cell_type, 'transient_times'])   = transient_times;
+sData.analysis.transients.([params.cell_type, '_transient_dur_sec']) = transient_duration_sec;
+sData.analysis.transients.([params.cell_type, '_transient_ampl'])    = transient_amplitudes;
+sData.analysis.transients.([params.cell_type, '_transient_times'])   = transient_times;

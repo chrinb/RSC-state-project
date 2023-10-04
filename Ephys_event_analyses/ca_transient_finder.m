@@ -192,8 +192,8 @@ for roi_nr = 1:size(dff,1)
 end
 
 %% Store output
-sData.analysis.transients.sig_transients_logmat                   = sig_transients_logmat;
-sData.imdata.roiSignals(2).([params.cell_type, '_sig_transients']) = sig_transients;
+sData.analysis.transients.([params.cell_type, '_sig_transients_logmat']) = sig_transients_logmat;
+sData.imdata.roiSignals(2).([params.cell_type, '_sig_transients'])       = sig_transients;
 
 %% Optional: plot some example significant traces
 
