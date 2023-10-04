@@ -15,8 +15,20 @@ session, and exclude episodes that are (1) ongoing at recording start,
 % Get 2P frame rate
 imaging_sampling_rate = find_imaging_framerate(sData);
 
-% Get start/stop times for AW, QW, NREM, and REM
-all_state_times = get_state_start_stop_times(sData);
+% Get start/stop times for different states
+[active_start, active_stop] = findTransitions(sData.behavior.active_wakefulness); 
+active_times                = [active_start', active_stop']./imaging_sampling_rate;
+[quiet_start, quiet_stop]   = findTransitions(sData.behavior.quiet_wakefulness);
+quiet_times                 = [quiet_start', quiet_stop']./imaging_sampling_rate;
+[NREM_start, NREM_stop]     = findTransitions(sData.behavior.NREM_vector);
+NREM_times                  = [NREM_start', NREM_stop']./imaging_sampling_rate;
+[REM_start, REM_stop]       = findTransitions(sData.behavior.REM_vector);
+REM_times                   = [REM_start', REM_stop']./imaging_sampling_rate;
+
+all_state_times = {active_times, quiet_times, NREM_times, REM_times};
+% state_times  = nrem_sleep(sData);
+% state_times2 = [NREM_start', NREM_stop'];
+% all_state_vectors = {active_vec; quiet_vec; NREM_vec; REM_vec};
 
 signal_end = size(sData.imdata.roiSignals(2).newdff,2);
 
@@ -31,8 +43,7 @@ min_ep_duration = [1 1 20 30];
 % Loop over the four different state  (AW, QW, NREM, REM)
 all_state_vectors_adjusted = cell(4,1);
 for state_nr = 1:4
-    
-    % Get start/stop times for current state
+
     current_state_times = all_state_times{1, state_nr};
     current_state_adjusted = current_state_times;
 
@@ -42,16 +53,17 @@ for state_nr = 1:4
         % Loop over episodes for current state
         for state_ep_nr = 1:size(current_state_times,1)
             
-            % Get start/stop time for current episode
-            current_ep_times = [current_state_times(state_ep_nr, 1), current_state_times(state_ep_nr, 2)];
+            current_state_times = [current_state_times(state_ep_nr, 1), current_state_times(state_ep_nr, 2)];
             % Check if episode fits criteria
-            ep_fits_criteria = @(x, y, z, a, b) x(1) > y && x(2) < z && numel(x(1):x(2)) > a(b);
-
-            if ep_fits_criteria(current_ep_times, threshold_start, threshold_stop, min_ep_duration, state_nr )
-                
-                state_snippet_times{state_ep_nr} = current_ep_times(1):current_ep_times(2);
-                state_snippet{state_ep_nr}       = signal(state_snippet{state_ep_nr});
+            ep_fits_criteria = @(x, y, z, a, b, c) x(b,1) > y && x(b,2) < z && numel(x(b,1):x(b,2)) > a(c);
+%             if current_state_times(state_ep_nr, 1) > start_threshold && current_state_times(state_ep_nr, 2) < stop_threshold && numel(current_state_times(state_nr, 1):current_state_times(state_nr,2) > min_ep_duration(state_nr) 
+            if ep_fits_criteria(current_state_times, threshold_start, threshold_stop, min_ep_duration, state_ep_nr, state_nr )
+                state_snippet_times{state_ep_nr,1} = current_state_times(state_ep_nr,1) 
             end
+        
+        % Check if laste state bout occurs < 15 sec before recording end
+        if eventStopIdx(end) > stop_threshold
+            current_state_adjusted(eventStartIdx(end):eventStopIdx(end)) = 0;
         end
     end
     
