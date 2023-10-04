@@ -39,7 +39,7 @@ sig_transients        = sData.imdata.roiSignals(2).([params.cell_type, '_sig_tra
 for roi_nr = 1:n_rois
     
     transient     = sig_transients(roi_nr,:);
-    transient_log = sData.analysis.transients.sig_transients_logmat(roi_nr,:);
+    transient_log = sData.analysis.transients.([params.cell_type, '_sig_transients_logmat'])(roi_nr,:);
 
     % Compute transient durations
     [eventStartIdx, eventStopIdx ] = findTransitions( transient_log);

@@ -14,28 +14,38 @@ params = varargin{1,2};
 
 %% Get signal data
 
-dff    = sData.imdata.roiSignals(2).newdff;
-deconv = sData.imdata.roiSignals(2).newdff;
+% dff    = sData.imdata.roiSignals(2).newdff;
+% deconv = sData.imdata.roiSignals(2).newdff;
 % dff  = okada(dff, 2);
 switch params.signal_type
     case 'dff'
-        signal = dff;
+%         signal = sData.imdata.roiSignals(2).newdff;
+        txt      = 'newdff';
         axon_txt = 'DffFilt';
+        txt2     = '';
     case 'deconv'
-        signal = deconv;
+%         signal = sData.imdata.roiSignals(2).ciaDeconvolved;
+        txt = 'ciaDeconvolved';
         axon_txt = 'Dec';
+        txt2     = '';
+    case 'transients'
+        axon_txt = '_sig_transients';
+        txt      = '_sig_transients';
+        txt2     = params.cell_type;
 end
 
 switch params.cell_type
     case {'pc', 'in'}
-        signal_to_plot{1,:} = zscore( dff(pc_rois,:), 0, 2);
-        txt_pc              = 'Excitatory cells';
-        signal_to_plot{2,:} = zscore( dff(in_rois,:), 0 ,2);
-        txt_pc              = 'Inhibitory cells';
+%         signal_to_plot{1,:} = zscore( signal(pc_rois,:), 0, 2);
+        signal_to_plot{1,:} = zscore(  sData.imdata.roiSignals(2).([txt2, txt])(pc_rois,:), 0, 2);
+%         txt_pc              = 'Excitatory cells';
+%         signal_to_plot{2,:} = zscore( signal(in_rois,:), 0 ,2);
+        signal_to_plot{2,:} = zscore( sData.imdata.roiSignals(2).([txt2, txt])(in_rois,:), 0 ,2);
+%         txt_pc              = 'Inhibitory cells';
         cmap                = [-1 2];
     case 'axon'
         signal_to_plot{1,:} = sData.imdata.roiSignals(2).(['mergedAxons',axon_txt]);
-        txt                 = 'Axons';
+%         txt                 = 'Axons';
         cmap                = [0 .3];
 end
 
@@ -44,7 +54,7 @@ state_vectors_2p = get_state_logicals(sData);
 %% Create hypnogram vector
 
 % Initialize empty vector
-hypnogram_vector = zeros(1, size(dff,2) );
+hypnogram_vector = zeros(1, size(signal_to_plot{1,:},2) );
 
 % Create hypnogram vector
 hypnogram_vector(state_vectors_2p{1,1} == 1) = 2; % NREM sleep
@@ -180,7 +190,7 @@ if isfield(sData, 'episodes')
 end
 
 
-set(gca, 'xlim', [time_vector(1) time_vector(end)], 'ylim', [y_lims])
+set(gca, 'xlim', [time_vector(1) time_vector(end)], 'ylim', (y_lims))
 
 linkaxes(hAx, 'x')
 

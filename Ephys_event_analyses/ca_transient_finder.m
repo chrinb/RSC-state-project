@@ -13,11 +13,14 @@ function sData = ca_transient_finder(sData, params)
 % Select data
 switch params.cell_type
     case 'axon'
-     dff    = sData.imdata.roiSignals(2).mergedAxonsDffFilt;
+    dff    = sData.imdata.roiSignals(2).mergedAxonsDffFilt;
+    txt    = 'mergedAxons';
     case 'in'
     dff = sData.imdata.roiSignals(2).newdff(in_rois,:);
+    txt  = 'in';
     case 'pc'
     dff = sData.imdata.roiSignals(2).newdff(pc_rois,:);
+    txt = 'pc';
     case 'all'
     dff = sData.imdata.roiSignals(2).newdff;
 end
@@ -179,7 +182,7 @@ for roi_nr = 1:size(dff,1)
 %     temp_plot_sig    = roi_signal;
 %     temp_plot_nonsig = roi_signal;
 %     temp_plot_sig(frame_vec == 0) = NaN;
-%     roi_signal_sig_transients(frame_vec == 0) = NaN;
+% %     roi_signal_sig_transients(frame_vec == 0) = NaN;
 %     figure(1), 
 %     hold on
 %     grayColor = [.6 .6 .6];
@@ -187,13 +190,11 @@ for roi_nr = 1:size(dff,1)
 %     plot(temp_plot_sig, 'r')
 %     clf
 
-    % Save the significant transients
-%     sData.analysis.transients.([params.cell_type, '_sig_transients'])(roi_nr,:)    = roi_sig_transients;
 end
 
 %% Store output
 sData.analysis.transients.([params.cell_type, '_sig_transients_logmat']) = sig_transients_logmat;
-sData.imdata.roiSignals(2).([params.cell_type, '_sig_transients'])       = sig_transients;
+sData.imdata.roiSignals(2).([txt, '_sig_transients'])                     = sig_transients;
 
 %% Optional: plot some example significant traces
 

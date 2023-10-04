@@ -2,10 +2,12 @@ function output = freq_band_analysis(sData, params)
 
 % Written by Christoffer Berge | Vervaeke lab
 
-% Extract raw and filtered NREM/REM snippet(s) from CA1 LFP and cortical 
-% ECoG channel in sleep sessions. Exclude NREM/REM episodes that are (1) 
-% ongoing at recording start, (2) continues past recording end, or (3) 
-% are < 30s in duration. 
+%{
+Extract raw and filtered NREM/REM snippet(s) from CA1 LFP and cortical 
+ECoG channel in sleep sessions and store snippets in cell array. Exclude 
+NREM/REM episodes that are (1) ongoing at recording start, (2) continues 
+past recording end, or (3) are < certain duration threshold. 
+%} 
 
 % Frequency band parameter input specifices which frequency and states to 
 % analyze. 
