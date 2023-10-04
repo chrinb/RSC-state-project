@@ -1,4 +1,6 @@
-    function [signal, params, label3, rois_for_an, roiClustIDs, cells_to_exclude] = get_roi_signals_from_sData(varargin)
+function signal_to_plot = get_roi_signals_from_sData(sData, params)
+
+% [signal, params, label3, rois_for_an, roiClustIDs, cells_to_exclude] = get_roi_signals_from_sData(sData, params)
 
 % Written by Christoffer Berge | Vervaeke Lab
 
@@ -7,23 +9,48 @@
 % excitatory vs. inhibitory cells) or access a subset of ROIs (NOT
 % FINISHED)
 
-sData  = varargin{1,1};
-params = varargin{1,2};
+[pc_rois, in_rois] = remove_cells_longitudinal(sData);
 
-%% Select which ROI signal to use
-checkParameter = @(param, n, str) (isnumeric(param) && param==n) || strcmp(param, str);
 
-if checkParameter(params.signal_type, 1, 'deconv')
-    signal = sData.imdata.roiSignals(2).ciaDeconvolved;
-    text   = 'deconv.';
-elseif checkParameter(params.signal_type, 2, 'dff')
-    signal = sData.imdata.roiSignals(2).newdff;
-    text   = '';
-elseif checkParameter(params.signal_type, 3, '')
-    prompt = sprintf('Type structname: '); 
-    signal = input(prompt);
-    text = [];
+switch params.signal_type
+    case 'dff'
+        txt      = 'newdff';
+        axon_txt = 'DffFilt';
+        txt2     = '';
+    case 'deconv'
+        txt = 'ciaDeconvolved';
+        axon_txt = 'Dec';
+        txt2     = '';
+    case 'transients'
+        axon_txt = '_sig_transients';
+        txt      = '_sig_transients';
+        txt2     = params.cell_type;
 end
+
+switch params.cell_type
+    case {'pc', 'in'}
+        signal_to_plot{1,:} = zscore( sData.imdata.roiSignals(2).([txt2, txt])(pc_rois,:), 0, 2);
+        signal_to_plot{2,:} = zscore( sData.imdata.roiSignals(2).([txt2, txt])(in_rois,:), 0 ,2);
+        cmap                = [-1 2];
+    case 'axon'
+        signal_to_plot{1,:} = sData.imdata.roiSignals(2).(['mergedAxons',axon_txt]);
+        cmap                = [0 .3];
+end
+% 
+% %% Select which ROI signal to use
+% checkParameter = @(param, n, str) (isnumeric(param) && param==n) || strcmp(param, str);
+% 
+% if checkParameter(params.signal_type, 1, 'deconv')
+%     signal = sData.imdata.roiSignals(2).ciaDeconvolved;
+%     text   = 'deconv.';
+% elseif checkParameter(params.signal_type, 2, 'dff')
+%     signal = sData.imdata.roiSignals(2).newdff;
+%     text   = '';
+% elseif checkParameter(params.signal_type, 3, '')
+%     prompt = sprintf('Type structname: '); 
+%     signal = input(prompt);
+%     text = [];
+% end
 
 %% Select which experiment type 
 
@@ -51,89 +78,89 @@ end
 % 
 %     % Update ROI array to reflect subset of ROIs present in current session
 %     roi_arr = sData.imdata.roi_arr(roi_idx);
-
-if isfield(sData.imdata, 'roi_arr')
-    roi_arr = sData.imdata.roi_arr;
-else
-    roi_arr = [];
-end
-
-roiClustIDs = [];
-if checkParameter(params.exp_type, 1, 'bulk') % bulk analysis
-
-    % In the case of axon imaging sessions, check if there is a bulk axon
-    % signal and use that.  
-    try 
-        signal = mean(sData.imdata.roiSignals(2).axonBulkDff);
-        label3 = '# SWR';
-        cells_to_exclude = [];
-    catch
-        signal = mean(signal);
-        label3 = '# SWR';
-        cells_to_exclude = [];
-    end
-
-elseif checkParameter(params.exp_type, 3, 'axon')   % axons
-    
-    % Check if there is a field in sData called 'mergedAxons', if not,
-    % merge.
-    cells_to_exclude = [];
-    if ~isfield(sData.imdata.roiSignals(2), 'mergedAxonsDffFilt')
-       
-        % Select principal/excitatory cells
-        [pc_rois, ~]       = remove_cells(sData);
-
-        % Select DF/F for axon clustering
-        ROImtx = sData.imdata.roiSignals(2).newdff(pc_rois,:);
-        % Cluster axons
-        [merged_ROI_dff,merged_ROI_deconv, roiClustIDs] = hierClust_axons(ROImtx,1, sData, pc_rois);
-        % Select either the merged DF/F or deconvolved signal
-        if checkParameter(params.signal_type, 1, 'deconv')
-            signal = merged_ROI_deconv;
-        elseif checkParameter(params.signal_type, 2, 'dff')
-            signal = merged_ROI_dff;
-        end
-
-    else
-        if checkParameter(params.signal_type, 1, 'deconv')
-            signal = sData.imdata.roiSignals(2).mergedAxonsDec;
-        elseif checkParameter(params.signal_type, 2, 'dff')
-            signal = sData.imdata.roiSignals(2).mergedAxonsDff;
-%             signal = sData.analysis.transients.sig_transients;
-        end
-
-    end
-    label3 = '# ROI';
-else
-    label3 = '# ROI';
-end
-
-%% Select neuron subtype for analysis
-
-% Get indicies of excitatory and inhibitory cells
-[pc_rois, in_rois] = remove_cells_longitudinal(sData);
-
-% Population analysis + select PCs
-if  checkParameter(params.exp_type, 2, 'default') && checkParameter(params.cell_type, 1 , 'pc')
-%     [pc_rois, in_rois] = remove_cells(sData); % Select principal cells for analysis
-    rois_for_an        = pc_rois;
-    cells_to_exclude   = in_rois;
-% Population analysis + select INs
-elseif checkParameter(params.exp_type, 2, 'default') && checkParameter(params.cell_type, 2 , 'in')
-%     [pc_rois, in_rois] = remove_cells(sData); % Select inhibitory cells for analysis
-    rois_for_an        = in_rois;
-    cells_to_exclude   = pc_rois;
-
-% Axon population analysis + get IN indicies
-elseif checkParameter(params.exp_type, 3, 'axon')
-%     [~, in_rois]     = remove_cells(roi_arr); % Get IN indicies
-%     cells_to_exclude = in_rois;
-    rois_for_an      = 1:size(signal,1); 
-
-elseif checkParameter(params.exp_type, 1, 'bulk')
-    rois_for_an = 1:size(signal,1); % Select all ROIs (1 in the case of bulk analysis)
-end
-
-
-
-
+% 
+% if isfield(sData.imdata, 'roi_arr')
+%     roi_arr = sData.imdata.roi_arr;
+% else
+%     roi_arr = [];
+% end
+% 
+% roiClustIDs = [];
+% if checkParameter(params.exp_type, 1, 'bulk') % bulk analysis
+% 
+%     % In the case of axon imaging sessions, check if there is a bulk axon
+%     % signal and use that.  
+%     try 
+%         signal = mean(sData.imdata.roiSignals(2).axonBulkDff);
+%         label3 = '# SWR';
+%         cells_to_exclude = [];
+%     catch
+%         signal = mean(signal);
+%         label3 = '# SWR';
+%         cells_to_exclude = [];
+%     end
+% 
+% elseif checkParameter(params.exp_type, 3, 'axon')   % axons
+%     
+%     % Check if there is a field in sData called 'mergedAxons', if not,
+%     % merge.
+%     cells_to_exclude = [];
+%     if ~isfield(sData.imdata.roiSignals(2), 'mergedAxonsDffFilt')
+%        
+%         % Select principal/excitatory cells
+%         [pc_rois, ~]       = remove_cells(sData);
+% 
+%         % Select DF/F for axon clustering
+%         ROImtx = sData.imdata.roiSignals(2).newdff(pc_rois,:);
+%         % Cluster axons
+%         [merged_ROI_dff,merged_ROI_deconv, roiClustIDs] = hierClust_axons(ROImtx,1, sData, pc_rois);
+%         % Select either the merged DF/F or deconvolved signal
+%         if checkParameter(params.signal_type, 1, 'deconv')
+%             signal = merged_ROI_deconv;
+%         elseif checkParameter(params.signal_type, 2, 'dff')
+%             signal = merged_ROI_dff;
+%         end
+% 
+%     else
+%         if checkParameter(params.signal_type, 1, 'deconv')
+%             signal = sData.imdata.roiSignals(2).mergedAxonsDec;
+%         elseif checkParameter(params.signal_type, 2, 'dff')
+%             signal = sData.imdata.roiSignals(2).mergedAxonsDff;
+% %             signal = sData.analysis.transients.sig_transients;
+%         end
+% 
+%     end
+%     label3 = '# ROI';
+% else
+%     label3 = '# ROI';
+% end
+% 
+% %% Select neuron subtype for analysis
+% 
+% % Get indicies of excitatory and inhibitory cells
+% [pc_rois, in_rois] = remove_cells_longitudinal(sData);
+% 
+% % Population analysis + select PCs
+% if  checkParameter(params.exp_type, 2, 'default') && checkParameter(params.cell_type, 1 , 'pc')
+% %     [pc_rois, in_rois] = remove_cells(sData); % Select principal cells for analysis
+%     rois_for_an        = pc_rois;
+%     cells_to_exclude   = in_rois;
+% % Population analysis + select INs
+% elseif checkParameter(params.exp_type, 2, 'default') && checkParameter(params.cell_type, 2 , 'in')
+% %     [pc_rois, in_rois] = remove_cells(sData); % Select inhibitory cells for analysis
+%     rois_for_an        = in_rois;
+%     cells_to_exclude   = pc_rois;
+% 
+% % Axon population analysis + get IN indicies
+% elseif checkParameter(params.exp_type, 3, 'axon')
+% %     [~, in_rois]     = remove_cells(roi_arr); % Get IN indicies
+% %     cells_to_exclude = in_rois;
+%     rois_for_an      = 1:size(signal,1); 
+% 
+% elseif checkParameter(params.exp_type, 1, 'bulk')
+%     rois_for_an = 1:size(signal,1); % Select all ROIs (1 in the case of bulk analysis)
+% end
+% 
+% 
+% 
+% 

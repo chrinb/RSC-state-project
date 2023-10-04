@@ -1,4 +1,4 @@
-function plot_session_activity(varargin)
+function plot_session_activity(sData, params)
 
 % Written by Christoffer Berge | Vervaeke lab
 
@@ -7,24 +7,17 @@ Plot colorplots of DF/F and deconvolved, and their averages for the
 session, as well as a state-activity vector (hypnogram)
 %}
 
-sData  = varargin{1,1};
-params = varargin{1,2};
-%% Get exctitatory and inhibitory indices
+%% Get excitatory and inhibitory indices
 [pc_rois, in_rois] = remove_cells_longitudinal(sData);
 
 %% Get signal data
 
-% dff    = sData.imdata.roiSignals(2).newdff;
-% deconv = sData.imdata.roiSignals(2).newdff;
-% dff  = okada(dff, 2);
 switch params.signal_type
     case 'dff'
-%         signal = sData.imdata.roiSignals(2).newdff;
         txt      = 'newdff';
         axon_txt = 'DffFilt';
         txt2     = '';
     case 'deconv'
-%         signal = sData.imdata.roiSignals(2).ciaDeconvolved;
         txt = 'ciaDeconvolved';
         axon_txt = 'Dec';
         txt2     = '';
@@ -36,16 +29,11 @@ end
 
 switch params.cell_type
     case {'pc', 'in'}
-%         signal_to_plot{1,:} = zscore( signal(pc_rois,:), 0, 2);
-        signal_to_plot{1,:} = zscore(  sData.imdata.roiSignals(2).([txt2, txt])(pc_rois,:), 0, 2);
-%         txt_pc              = 'Excitatory cells';
-%         signal_to_plot{2,:} = zscore( signal(in_rois,:), 0 ,2);
+        signal_to_plot{1,:} = zscore( sData.imdata.roiSignals(2).([txt2, txt])(pc_rois,:), 0, 2);
         signal_to_plot{2,:} = zscore( sData.imdata.roiSignals(2).([txt2, txt])(in_rois,:), 0 ,2);
-%         txt_pc              = 'Inhibitory cells';
         cmap                = [-1 2];
     case 'axon'
         signal_to_plot{1,:} = sData.imdata.roiSignals(2).(['mergedAxons',axon_txt]);
-%         txt                 = 'Axons';
         cmap                = [0 .3];
 end
 
