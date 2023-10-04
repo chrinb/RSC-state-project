@@ -1,4 +1,4 @@
-function all_data = get_different_states(varargin)
+function all_data = get_imaging_state_data(varargin)
 
 % Written by Christoffer Berge | Vervaeke lab
 
