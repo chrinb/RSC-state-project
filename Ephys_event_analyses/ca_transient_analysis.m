@@ -2,44 +2,43 @@ function sData = ca_transient_analysis(sData, params)
 
 % Written by Christoffer Berge | Vervaeke lab
 
-% Function that for each ROI DF/F trace with significant Ca2+ transients
-% computes: (1) transient peak DF/F, (2) transients per second, (3)
-% transient duration (in seconds), (4) time points of transient onsets.
+%{
+Function that calculates duration, amplitude, and onset of significant
+calcium transients
+%}
 
 % Also include "integrated DF/F per transient"??
 
-% TO DO: is it worth splitting excitatory and inhibitory ROIS??? will need
-% to save them separately...
-
-
-%% Get exctitatory and inhibitory indices
 [pc_rois, in_rois] = remove_cells_longitudinal(sData);
 
 % Select data
 switch params.cell_type
     case 'axon'
-     dff    = sData.imdata.roiSignals(2).mergedAxonsDffFilt;
-    case 'in'
-    dff = sData.imdata.roiSignals(2).newdff(in_rois,:);
+    sig_transients = sData.imdata.roiSignals(2).mergedAxons_sig_transients;
+    txt = 'axon';
     case 'pc'
-    dff = sData.imdata.roiSignals(2).newdff(pc_rois,:);
-    case 'all'
-    dff = sData.imdata.roiSignals(2).newdff;
+    sig_transients = sData.imdata.roiSignals(2).all_sig_transients(pc_rois,:);
+    txt = 'pc';
+    case 'in'
+    sig_transients = sData.imdata.roiSignals(2).all_sig_transients(in_rois,:);
+    txt = 'pc';
+%     casre 'all'
+%     dff = sData.imdata.roiSignals(2).newdff;
 end
 
 imaging_sampling_rate = find_imaging_framerate(sData);
-n_rois                = size(dff, 1);
-sig_transients        = sData.imdata.roiSignals(2).([params.cell_type, '_sig_transients']);
+n_rois                = size(sig_transients, 1);
+% sig_transients        = sData.imdata.roiSignals(2).([params.cell_type, '_sig_transients']);
 
 
 % Preallocate
-[transient_duration_sec, transient_times, transient_amplitudes] = deal( cell(size(dff,1),1));
+[transient_duration_sec, transient_times, transient_amplitudes] = deal( cell(size(sig_transients,1),1));
 
 % Loop over ROIs
 for roi_nr = 1:n_rois
     
     transient     = sig_transients(roi_nr,:);
-    transient_log = sData.analysis.transients.([params.cell_type, '_sig_transients_logmat'])(roi_nr,:);
+    transient_log = sData.analysis.transients.([txt, '_sig_transients_logmat'])(roi_nr,:);
 
     % Compute transient durations
     [eventStartIdx, eventStopIdx ] = findTransitions( transient_log);

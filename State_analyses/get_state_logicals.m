@@ -62,8 +62,9 @@ for state_nr = 1:4
             state_vec_name = 'active_wakefulness';
     end
 
-
-    if isfield(sData.behavior, state_vec_name) && ~isempty(sData.behavior.(state_vec_name)) && ~(sum(sData.behavior.(state_vec_name)) == 0)
+    sData_contains_state = @(x, y) isfield(x, y) && ~isempty(x.(y)) && ~(sum(x.(y))==0 );
+%     if isfield(sData.behavior, state_vec_name) && ~isempty(sData.behavior.(state_vec_name)) && ~(sum(sData.behavior.(state_vec_name)) == 0)
+    if sData_contains_state(sData.behavior, state_vec_name)
         % Load NREM logical
         state_vector                    = sData.behavior.(state_vec_name);
         [eventStartIdx, eventStopIdx ]  = findTransitions( state_vector );

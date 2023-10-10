@@ -80,15 +80,15 @@ for state_nr = 1:n_states
 
         % Compute mean transient event rate, duration, and peak DF/F
         for roi_nr = 1:n_rois   
-            roi_transient_idx{roi_nr} = current_state_vec_2P( sData.analysis.transients.axon_transient_times{roi_nr, 1} );
+            roi_transient_idx{roi_nr} = current_state_vec_2P( sData.analysis.transients.([params.cell_type, '_transient_times']){roi_nr, 1} );
         end
         anon                     = @(x) sum(x > 0);
         roi_transient_num        = cell2mat( cellfun(anon, roi_transient_idx, 'uni', 0));
         mean_transient_event_rate = roi_transient_num/total_state_length_sec;
         
         anon2                   = @(x,y) x(y);
-        transient_durations     = cellfun(anon2, sData.analysis.transients.axon_transient_dur_sec, roi_transient_idx', 'uni', 0); 
-        transient_peak_dff      = cellfun(anon2, sData.analysis.transients.axon_transient_ampl, roi_transient_idx', 'uni', 0); 
+        transient_durations     = cellfun(anon2, sData.analysis.transients.([params.cell_type, '_transient_dur_sec']), roi_transient_idx', 'uni', 0); 
+        transient_peak_dff      = cellfun(anon2, sData.analysis.transients.([params.cell_type, '_transient_ampl']), roi_transient_idx', 'uni', 0); 
         mean_transient_duration = cell2mat( cellfun(@mean, transient_durations, 'uni', 0));
         
         % Store in sData

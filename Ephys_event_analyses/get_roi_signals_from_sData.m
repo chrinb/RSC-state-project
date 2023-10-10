@@ -1,4 +1,4 @@
-function signal_to_plot = get_roi_signals_from_sData(sData, params)
+function [signal_to_plot, cmap, pc_rois, in_rois] = get_roi_signals_from_sData(sData, params)
 
 % [signal, params, label3, rois_for_an, roiClustIDs, cells_to_exclude] = get_roi_signals_from_sData(sData, params)
 
@@ -23,14 +23,14 @@ switch params.signal_type
         txt2     = '';
     case 'transients'
         axon_txt = '_sig_transients';
-        txt      = '_sig_transients';
-        txt2     = params.cell_type;
+        txt      = 'all_sig_transients';
+%         txt2     = params.cell_type;
 end
 
 switch params.cell_type
     case {'pc', 'in'}
-        signal_to_plot{1,:} = zscore( sData.imdata.roiSignals(2).([txt2, txt])(pc_rois,:), 0, 2);
-        signal_to_plot{2,:} = zscore( sData.imdata.roiSignals(2).([txt2, txt])(in_rois,:), 0 ,2);
+        signal_to_plot{1,:} = zscore( sData.imdata.roiSignals(2).(txt)(pc_rois,:), 0, 2);
+        signal_to_plot{2,:} = zscore( sData.imdata.roiSignals(2).(txt)(in_rois,:), 0 ,2);
         cmap                = [-1 2];
     case 'axon'
         signal_to_plot{1,:} = sData.imdata.roiSignals(2).(['mergedAxons',axon_txt]);

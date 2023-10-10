@@ -7,35 +7,36 @@ Plot colorplots of DF/F and deconvolved, and their averages for the
 session, as well as a state-activity vector (hypnogram)
 %}
 
-%% Get excitatory and inhibitory indices
-[pc_rois, in_rois] = remove_cells_longitudinal(sData);
-
-%% Get signal data
-
-switch params.signal_type
-    case 'dff'
-        txt      = 'newdff';
-        axon_txt = 'DffFilt';
-        txt2     = '';
-    case 'deconv'
-        txt = 'ciaDeconvolved';
-        axon_txt = 'Dec';
-        txt2     = '';
-    case 'transients'
-        axon_txt = '_sig_transients';
-        txt      = '_sig_transients';
-        txt2     = params.cell_type;
-end
-
-switch params.cell_type
-    case {'pc', 'in'}
-        signal_to_plot{1,:} = zscore( sData.imdata.roiSignals(2).([txt2, txt])(pc_rois,:), 0, 2);
-        signal_to_plot{2,:} = zscore( sData.imdata.roiSignals(2).([txt2, txt])(in_rois,:), 0 ,2);
-        cmap                = [-1 2];
-    case 'axon'
-        signal_to_plot{1,:} = sData.imdata.roiSignals(2).(['mergedAxons',axon_txt]);
-        cmap                = [0 .3];
-end
+[signal_to_plot, cmap] = get_roi_signals_from_sData(sData, params);
+% %% Get excitatory and inhibitory indices
+% [pc_rois, in_rois] = remove_cells_longitudinal(sData);
+% 
+% %% Get signal data
+% 
+% switch params.signal_type
+%     case 'dff'
+%         txt      = 'newdff';
+%         axon_txt = 'DffFilt';
+%         txt2     = '';
+%     case 'deconv'
+%         txt = 'ciaDeconvolved';
+%         axon_txt = 'Dec';
+%         txt2     = '';
+%     case 'transients'
+%         axon_txt = '_sig_transients';
+%         txt      = '_sig_transients';
+%         txt2     = params.cell_type;
+% end
+% 
+% switch params.cell_type
+%     case {'pc', 'in'}
+%         signal_to_plot{1,:} = zscore( sData.imdata.roiSignals(2).([txt2, txt])(pc_rois,:), 0, 2);
+%         signal_to_plot{2,:} = zscore( sData.imdata.roiSignals(2).([txt2, txt])(in_rois,:), 0 ,2);
+%         cmap                = [-1 2];
+%     case 'axon'
+%         signal_to_plot{1,:} = sData.imdata.roiSignals(2).(['mergedAxons',axon_txt]);
+%         cmap                = [0 .3];
+% end
 
 state_vectors_2p = get_state_logicals(sData);
 

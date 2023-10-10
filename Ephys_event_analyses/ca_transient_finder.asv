@@ -17,7 +17,7 @@ switch params.cell_type
     txt    = 'mergedAxons';
     case {'in','pc'}
     dff = sData.imdata.roiSignals(2).newdff;
-    txt  = 'all';
+    txt  = '';
 %     case 'pc'
 %     dff = sData.imdata.roiSignals(2).newdff(pc_rois,:);
 %     txt = 'pc';

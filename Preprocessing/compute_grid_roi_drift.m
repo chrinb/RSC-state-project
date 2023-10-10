@@ -123,7 +123,7 @@ if strcmp(params.tag_ch1_grid_rois, 'yes')
 end
 %% Filter channel 2 ROIs by channel 1 grid ROIS to keep
 if strcmp(params.filter_ch2_rois, 'yes')
-    filter_ch2_rois_by_grids(sessionObjects, roi_array)
+    filter_ch2_rois_by_grids(sessionObjects, roi_array, grids_to_keep_corr)
 end
 
 %% PLot correlation for first vs remaining frames for a single ROI

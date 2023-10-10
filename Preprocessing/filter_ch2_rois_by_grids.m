@@ -1,4 +1,4 @@
-function filter_ch2_rois_by_grids(sessionObjects, roi_array)
+function filter_ch2_rois_by_grids(sessionObjects, roi_array, grids_to_keep_corr)
 
 % Written by Christoffer Berge | Vervaeke lab
 
@@ -54,5 +54,6 @@ figure, imagesc(roi_masks_to_keep)
 
 %% Store indices of ROIs to keep in sData
 sData.imdata.ch2_grid_classficiation = list_of_rois;
+sData.imdata.grids_to_keep_idx       = grids_to_keep_corr;
 sessionObjects.saveData('sData', sData);
 sessionObjects.Data.resetCache('sData');

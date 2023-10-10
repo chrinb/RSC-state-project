@@ -171,9 +171,9 @@ P.spikeSnr  = 2;
 sData.imdata.roiSignals(2).mergedAxonsDff     = merged_ROI;
 sData.imdata.roiSignals(2).mergedAxonsDffFilt = merged_ROI_okada;
 sData.imdata.roiSignals(2).mergedAxonsDec     = dec;
-sData.analysis.roiClustIDs                    = roiClustIDs; % Save IDs of clustered ROIs
+sData.imdata.roiClustIDs                    = roiClustIDs; % Save IDs of clustered ROIs
 try
-    sData.analysis.n_unchanged_rois               = n_unchanged_rois; %
-    sData.analysis.clusterID                      = cluster_new_roi_id;
+    sData.imdata.n_unchanged_rois               = n_unchanged_rois; %
+    sData.imdata.clusterID                      = cluster_new_roi_id;
 catch
 end
