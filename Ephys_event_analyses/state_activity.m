@@ -67,8 +67,8 @@ for state_nr = 1:n_states
         roi_mean_dff_z = mean(state_dff_z, 2, 'omitnan');
 
         % Compute mean DF/F across all ROIS during session
-        mean_dff        =  mean(roi_mean_dff,'omitnan');
-        mean_dff_zscore =  mean(roi_mean_dff_z,'omitnan');
+%         mean_dff        =  mean(roi_mean_dff,'omitnan');
+%         mean_dff_zscore =  mean(roi_mean_dff_z,'omitnan');
 
         % Compute mean firing rate (Hz) per ROI
 
@@ -92,11 +92,11 @@ for state_nr = 1:n_states
         mean_transient_duration = cell2mat( cellfun(@mean, transient_durations, 'uni', 0));
         
         % Store in sData
-        sData.analysis.state_activity.([state_name, '_Dff_', params.cell_type])              = mean_dff;
-        sData.analysis.state_activity.([state_name, '_Dff_zscore_', params.cell_type])       = mean_dff_zscore;
+        sData.analysis.state_activity.([state_name, '_Dff_', params.cell_type])              = roi_mean_dff';
+        sData.analysis.state_activity.([state_name, '_Dff_zscore_', params.cell_type])       = roi_mean_dff_z';
         sData.analysis.state_activity.([state_name,'_deconv_rate_', params.cell_type])       = mean_deconvolved_rate;
         sData.analysis.state_activity.([state_name,'_transient_rate_', params.cell_type])     = mean_transient_event_rate;
-        sData.analysis.state_activity.([state_name,'_transient_duration_', params.cell_type]) = mean_transient_duration;
+        sData.analysis.state_activity.([state_name,'_transient_duration_', params.cell_type]) = mean_transient_duration';
         sData.analysis.state_activity.([state_name,'_transient_peakDFF_', params.cell_type])  = transient_peak_dff;
     end
 end

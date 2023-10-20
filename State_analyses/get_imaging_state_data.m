@@ -30,7 +30,7 @@ all_state_times = get_state_start_stop_times(sData);
 signal_end = size(sData.imdata.roiSignals(2).newdff,2);
 
 % Set threshold from recording start/end
-threshold = 3; % seconds
+threshold       = 3; % seconds
 threshold_start = imaging_sampling_rate*threshold;
 threshold_stop  = signal_end - (imaging_sampling_rate*threshold);
 
