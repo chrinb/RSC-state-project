@@ -52,7 +52,7 @@ switch varargin{1,3}
     case 'axon'
     dff          = sData.imdata.roiSignals(2).mergedAxonsDffFilt;
     rois_to_plot = randsample(size(dff,1), n_rois_to_plot);
-
+    deconv       = sData.imdata.roiSignals(2).mergedAxonsDec;  
 end
 
 figure,

@@ -9,21 +9,11 @@ function plot_sig_transients(varargin)
 
 % Load data
 sData              = varargin{1,1};
-% dff                = sData.imdata.roiSignals(2).newdff;
 
 % Find excitatory/inhibitory indicies 
 [pc_rois, in_rois] = remove_cells_longitudinal(sData);
 
-% try
-%     [pc_rois, in_rois] = remove_cells(sData);
-%     roi_idx = sData.imdata.roi_classification(pc_rois);
-%     roi_idx = roi_idx == 1;
-%     pc_rois = pc_rois(roi_idx);
-% catch
-%     [pc_rois, in_rois] = remove_cells(sData);
-% end
 n_rois_to_plot     = varargin{1,2};
-% time_imaging       = linspace(1, size(dff,2), size(dff,2) )/31;
 
 switch varargin{1,3}
     case 'pc'
@@ -40,7 +30,7 @@ switch varargin{1,3}
     case 'axon'
     dff          = sData.imdata.roiSignals(2).mergedAxonsDffFilt;
     rois_to_plot = randsample(size(dff,1), n_rois_to_plot);
-%     transients   = sData.imdata.roiSignals(2).all_sig_transients(pc_rois,:);
+    transients   = sData.imdata.roiSignals(2).mergedAxons_sig_transients;
 
 end
 

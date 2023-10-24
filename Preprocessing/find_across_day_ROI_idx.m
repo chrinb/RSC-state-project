@@ -11,12 +11,14 @@ in multiple sessions while others only in one. This function
 %}
 
 across_session_idx   = cell2mat( across_session_idx);
-unique_FOV_list      = unique( across_session_idx);
+unique_FOV_idx      = unique( across_session_idx);
+unique_FOV_list     = 1:size(unique_FOV_idx,1);
 total_nr_of_sessions = 1:size(across_session_idx,1);
 
 % Loop over all unique FOVs
-for unique_FOV_nr = 1:numel(unique_FOV_list)
-
+for FOV_nr = unique_FOV_list
+    
+    unique_FOV_nr         = unique_FOV_idx(FOV_nr);
     sessions_to_merge_idx = across_session_idx == unique_FOV_nr;
 
     if sum(sessions_to_merge_idx)  > 1

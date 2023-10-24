@@ -29,13 +29,23 @@ end
 
 switch params.cell_type
     case {'pc', 'in'}
-        signal_to_plot{1,:} = zscore( sData.imdata.roiSignals(2).(txt)(pc_rois,:), 0, 2);
-        signal_to_plot{2,:} = zscore( sData.imdata.roiSignals(2).(txt)(in_rois,:), 0 ,2);
+        signal_to_plot{1,:} = sData.imdata.roiSignals(2).(txt)(pc_rois,:);
+        signal_to_plot{2,:} = sData.imdata.roiSignals(2).(txt)(in_rois,:);
         cmap                = [-1 2];
     case 'axon'
         signal_to_plot{1,:} = sData.imdata.roiSignals(2).(['mergedAxons',axon_txt]);
         cmap                = [0 .3];
 end
+
+% Z-score normalize
+if strcmp(params.zscore, 'yes') && strcmp(params.cell_type, 'pc')
+    signal_to_plot{1,:} = zscore(signal_to_plot{1,:} , 0 ,2);
+    signal_to_plot{2,:} = zscore(signal_to_plot{2,:} , 0 ,2);
+elseif strcmp(params.zscore, 'yes') && strcmp(params.cell_type, 'axon')
+    signal_to_plot{1,:} = zscore(signal_to_plot{1,:} , 0 ,2);
+
+end
+
 % 
 % %% Select which ROI signal to use
 % checkParameter = @(param, n, str) (isnumeric(param) && param==n) || strcmp(param, str);
