@@ -12,35 +12,26 @@ sData  = varargin{1,1};
 params = varargin{1,2};
 %% Get exctitatory and inhibitory indicies (THIS NEEDS ITS OWN FUNCTION!!)
 % Find excitatory/inhibitory indicies 
-[pc_rois, in_rois] = remove_cells(sData);
+[pc_rois, in_rois] = remove_cells_longitudinal(sData);
 
 % If session is part of multi-day recordings, remove ROIs not present in
 % current session
-if isfield(sData.imdata, 'roi_classification')
-
-    roi_classification = sData.imdata.roi_classification;
-
-    pc_roi_idx = roi_classification(pc_rois); % of all ROIs, index out cell type
-    in_roi_idx = roi_classification(in_rois); % of all ROIs, index out cell type
-    log_idx_pc = pc_roi_idx == 1;
-    log_idx_in = in_roi_idx == 1;
-    pc_rois    = pc_rois(log_idx_pc);
-    in_rois    = in_rois(log_idx_in);
-end
+% if isfield(sData.imdata, 'roi_classification')
+% 
+%     roi_classification = sData.imdata.roi_classification;
+% 
+%     pc_roi_idx = roi_classification(pc_rois); % of all ROIs, index out cell type
+%     in_roi_idx = roi_classification(in_rois); % of all ROIs, index out cell type
+%     log_idx_pc = pc_roi_idx == 1;
+%     log_idx_in = in_roi_idx == 1;
+%     pc_rois    = pc_rois(log_idx_pc);
+%     in_rois    = in_rois(log_idx_in);
+% end
 
 %% Get signal data
-%  if strcmp(params.signal_type, 'dff')
     dff = sData.imdata.roiSignals(2).newdff;
     deconv = sData.imdata.roiSignals(2).newdff;
-%      if strcmp(params.cell_type, 'axon')
-%          signal_data = sData.imdata.roiSignals(2).mergedAxonsDff;
-%      end
-%  elseif strcmp(params.signal_type, 'deconv')
-%      signal_data = sData.imdata.roiSignals(2).ciaDeconvolved;
-%      if strcmp(params.cell_type, 'axon')
-%          signal_data = sData.imdata.roiSignals(2).mergedAxonsDec;
-%      end
-%  end
+
 if strcmp(params.cell_type, 'pc')
     signal_to_plot = dff(pc_rois,:);
     txt = 'Excitatory cells';

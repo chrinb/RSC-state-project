@@ -34,7 +34,7 @@ switch params.cell_type
         cmap                = [-1 2];
     case 'axon'
         signal_to_plot{1,:} = sData.imdata.roiSignals(2).(['mergedAxons',axon_txt]);
-        cmap                = [0 .3];
+        cmap                = [-1 2];
 end
 
 % Z-score normalize

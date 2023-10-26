@@ -163,15 +163,15 @@ end
 merged_ROI_okada = okada(merged_ROI,2);
 
 % Deconvolve merged DF/F
-P = nansen.twophoton.roisignals.getDeconvolutionParameters();
+P           = nansen.twophoton.roisignals.getDeconvolutionParameters();
 P.modelType = 'autoar';
-P.spikeSnr  = 2;
+P.spikeSnr  = 2.5;
 [dec, ~, ~] = nansen.twophoton.roisignals.deconvolveDff(merged_ROI, P);
 %% Store output in sData
 sData.imdata.roiSignals(2).mergedAxonsDff     = merged_ROI;
 sData.imdata.roiSignals(2).mergedAxonsDffFilt = merged_ROI_okada;
 sData.imdata.roiSignals(2).mergedAxonsDec     = dec;
-sData.imdata.roiClustIDs                    = roiClustIDs; % Save IDs of clustered ROIs
+sData.imdata.roiClustIDs                      = roiClustIDs; % Save IDs of clustered ROIs
 try
     sData.imdata.n_unchanged_rois               = n_unchanged_rois; %
     sData.imdata.clusterID                      = cluster_new_roi_id;
