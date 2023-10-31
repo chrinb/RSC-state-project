@@ -13,32 +13,32 @@ sessionID                        = varargin{1,1};
 params                           = varargin{1,2};
 time                             = varargin{1,3};
 signal_swr_activity              = varargin{1,4};
-signal_swr_activity_zscore       = varargin{1,5};
-signal_swr_activity_mean         = varargin{1,6};
-signal_swr_activity_mean_zscore  = varargin{1,7};
-RippleIdx                        = varargin{1,8};
-label3                           = varargin{1,9};
-cells_to_exclude                 = varargin{1,10};
+% signal_swr_activity_zscore       = varargin{1,5};
+signal_swr_activity_mean         = varargin{1,5};
+% signal_swr_activity_mean_zscore  = varargin{1,7};
+RippleIdx                        = varargin{1,6};
+% label3                           = varargin{1,7};
+% cells_to_exclude                 = varargin{1,8};
 
 %% Data variables
 
 
 % Remove cell population not analyzed (e.g, if analyzing PCs remove INs
 % from plot ( they have zero values anyway) ).
-if ~isempty(cells_to_exclude) && ~(checkParameter(params.exp_type, 3, 'axon'))
-    signal_swr_activity_mean(cells_to_exclude,:)  = [];
-    signal_swr_activity_mean_zscore(cells_to_exclude,:) = [];
-end
+% if ~isempty(cells_to_exclude) && ~(checkParameter(params.exp_type, 3, 'axon'))
+%     signal_swr_activity_mean(cells_to_exclude,:)  = [];
+%     signal_swr_activity_mean_zscore(cells_to_exclude,:) = [];
+% end
 
 % Select signal for plot
-if checkParameter(params.exp_type, 2, 'default') || checkParameter(params.exp_type, 3, 'axon')
-    signal_swr_activity        = signal_swr_activity_mean;
-    signal_swr_activity_zscore = signal_swr_activity_mean_zscore;
-end
+% if checkParameter(params.exp_type, 2, 'default') || checkParameter(params.exp_type, 3, 'axon')
+%     signal_swr_activity        = signal_swr_activity_mean;
+%     signal_swr_activity_zscore = signal_swr_activity_mean_zscore;
+% end
 
 % Calculate standard error
 signal_SE             = std(signal_swr_activity, 'omitnan') ./ sqrt(size(signal_swr_activity,1));
-signal_SE_zscore      = std(signal_swr_activity_zscore, 'omitnan') ./ sqrt(size(signal_swr_activity_zscore,1));
+% signal_SE_zscore      = std(signal_swr_activity_zscore, 'omitnan') ./ sqrt(size(signal_swr_activity_zscore,1));
 
 if checkParameter(params.exp_type, 1, 'bulk')
     c_lim        = [-1.5 1.5];
@@ -51,7 +51,7 @@ end
 % Sort ROIs according to mean z-scored activity in the -0.5 to + 0.5 interval
 % surrounding SWR peak
 frameshift    = round(.5/(1/31));
-interval_mean = mean(signal_swr_activity_zscore(:, ( median(1:187)-frameshift:median(1:187)+frameshift)),2);
+interval_mean = mean(signal_swr_activity(:, ( median(1:187)-frameshift:median(1:187)+frameshift)),2);
 [max_val,~]   = max(interval_mean,[],2);
 [~, sort_idx] = sortrows(max_val);
 

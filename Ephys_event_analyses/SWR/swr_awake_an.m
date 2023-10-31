@@ -10,11 +10,18 @@ sData  = varargin{1,1};
 params = varargin{1,2};
 
 % Get ROI signals
-[signal, params, label3, rois_for_an, roiClustIDs, cells_to_exclude] = get_roi_signals_from_sData(sData, params );
+[signal, cmap, pc_rois, in_rois] = get_roi_signals_from_sData(sData, params );
 
 % Z-score data. 
-zscore_signal = bsxfun(@minus, signal, mean(signal,2) ); 
-zscore_signal = bsxfun(@rdivide, zscore_signal, std(signal,0,2));
+% zscore_signal = bsxfun(@minus, signal, mean(signal,2) ); 
+% zscore_signal = bsxfun(@rdivide, zscore_signal, std(signal,0,2));
+
+switch params.cell_type
+    case 'pc'
+        signal = signal{1,:};
+    case 'in'
+        signal = signal{2,:};
+end
 
 % Define variables
 nr_of_seconds  = 3;
@@ -36,33 +43,31 @@ RippleIdx = frames(round(RippleIdx));
 [signal_swr_activity_mean, signal_swr_activity_meanZ,...
 signal_swr_activity_median, signal_swr_activity_medianZ] = deal( zeros(size(signal,1), nr_of_frames) );
 
-[all_data, all_data_z] = deal( zeros(size(rois_for_an,2), size(RippleIdx,2), size(time,2)));
+[all_data, all_data_z] = deal( zeros(size(signal,1), size(RippleIdx,2), size(time,2)));
 
 t = 1;
 %% Run main analysis
 
 % Loop over nr of ROIs
-for roinr = rois_for_an 
+for roinr = 1:size(signal,1) 
     
     % Extract signal from currrent ROI
     roi_signal        = signal(roinr, :); 
-    roi_signal_zscore = zscore_signal(roinr,:); 
+%     roi_signal_zscore = zscore_signal(roinr,:); 
 
     % Get all peri-SWR activity windows from current ROI
-    [signal_swr_activity,signal_swr_activity_zscore] = ...
-        extract_avg_activity(RippleIdx, roi_signal, roi_signal_zscore, signal_swr_activity,...
-        signal_swr_activity_zscore, nr_of_seconds, params);
+    signal_swr_activity = extract_avg_activity(RippleIdx, roi_signal, signal_swr_activity, nr_of_seconds, params);
 
     % store all roi x time x SWR data
     all_data(t,:,:)   = signal_swr_activity;
-    all_data_z(t,:,:) = signal_swr_activity_zscore;
+%     all_data_z(t,:,:) = signal_swr_activity_zscore;
     
     % store mean SWR-activity
     signal_swr_activity_mean(roinr,:)  = mean(signal_swr_activity, 'omitnan');
-    signal_swr_activity_meanZ(roinr,:) = mean(signal_swr_activity_zscore, 'omitnan');
+%     signal_swr_activity_meanZ(roinr,:) = mean(signal_swr_activity_zscore, 'omitnan');
     % store median SWR-activity
     signal_swr_activity_median(roinr,:)  = median(signal_swr_activity, 'omitnan');
-    signal_swr_activity_medianZ(roinr,:) = median(signal_swr_activity_zscore, 'omitnan');
+%     signal_swr_activity_medianZ(roinr,:) = median(signal_swr_activity_zscore, 'omitnan');
     t = t+1;
 %     fprintf('ROI %d\', roinr)
 end
@@ -70,13 +75,17 @@ end
 %% Plot results
 
 sort_idx = [];
+% if strcmp(params.plotting,'plot')
+% sort_idx = plot_swr_awake_an(sessionID,        params, ...
+%                   time,                        signal_swr_activity,...
+%                   signal_swr_activity_zscore,  signal_swr_activity_mean, ...
+%                   signal_swr_activity_meanZ,   ...
+%                   RippleIdx,                   ...
+%                   label3,                      cells_to_exclude);
+% end
+
 if strcmp(params.plotting,'plot')
-sort_idx = plot_swr_awake_an(sessionID,        params, ...
-                  time,                        signal_swr_activity,...
-                  signal_swr_activity_zscore,  signal_swr_activity_mean, ...
-                  signal_swr_activity_meanZ,   ...
-                  RippleIdx,                   ...
-                  label3,                      cells_to_exclude);
+    sort_idx = plot_mean_swr(sessionID, params, time, signal_swr_activity_mean, RippleIdx);
 end
 
 %% Save output as struct

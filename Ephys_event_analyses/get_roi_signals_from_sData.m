@@ -13,7 +13,7 @@ function [signal_to_plot, cmap, pc_rois, in_rois] = get_roi_signals_from_sData(s
 
 
 switch params.signal_type
-    case 'dff'
+    case 'Dff'
         txt      = 'newdff';
         axon_txt = 'DffFilt';
         txt2     = '';
@@ -34,7 +34,7 @@ switch params.cell_type
         cmap                = [-1 2];
     case 'axon'
         signal_to_plot{1,:} = sData.imdata.roiSignals(2).(['mergedAxons',axon_txt]);
-        cmap                = [-1 2];
+        cmap                = [-1 2 ];
 end
 
 % Z-score normalize
