@@ -1,4 +1,4 @@
-function sort_idx = plot_mean_event_activity(mean_session_data)
+function sort_idx = plot_mean_event_activity(mean_session_data, mouseID)
 
 % Written by Christoffer Berge | Vervaeke Lab
 
@@ -13,11 +13,11 @@ if size(mean_session_data,1) > 1
     params                    = mean_session_data{1, 1}{2, 1};  
     time                      = mean_session_data{1, 1}{3, 1};  
 else
-    sessionID                        = mean_session_data{4,1};
-    params                           = mean_session_data{2,1};
-    time                             = mean_session_data{3,1};
-    mean_peri_event_activity         = mean_session_data{1,1};
-    event_idx                        = mean_session_data{5,1};
+    sessionID                        = mean_session_data{1, 1}{4,1};
+    params                           = mean_session_data{1, 1}{2,1};
+    time                             = mean_session_data{1, 1}{3,1};
+    mean_peri_event_activity         = mean_session_data{1, 1}{1,1};
+    event_idx                        = mean_session_data{1, 1}{5,1};
 end
 
 % Calculate standard error
@@ -28,7 +28,7 @@ if strcmp(params.signal_type, 'deconv')
 elseif strcmp(params.signal_type,  'Dff')
     c_lim        = [-.5 .5];
 elseif strcmp(params.signal_type,  'transients')
-    c_lim        = [-.5 .5];
+    c_lim        = [-.05 .5];
 end
 
 % Sort ROIs according to mean z-scored activity in the -0.5 to + 0.5 interval
@@ -38,6 +38,8 @@ interval_mean = mean(mean_peri_event_activity(:, ( median(1:187)-frameshift:medi
 [max_val,~]   = max(interval_mean,[],2);
 [~, sort_idx] = sortrows(max_val);
 
+% Find unique mouse IDs
+n_mice = numel(unique(mouseID));
 %% Plot results
 x1 = [time(1), time(end)];
 y1 = [1 size(mean_peri_event_activity,1)];
@@ -48,8 +50,14 @@ elseif strcmp(params.event_type, 'Spindle')
     xlabel_text = ' Spindle onset ';
 end
 
+if strcmp(params.zscore, 'yes')
+    title_text = 'z-score ';
+else
+    title_text = '';
+end
+
 figure,
-% sgtitle([ sessionID, ', SWR n = ' num2str(length(event_idx)), ', ', params.cell_type], 'Interpreter', 'none') 
+sgtitle(['Peri-event activity, ' num2str(size(mean_session_data,1)) ' sessions, ', num2str(n_mice), ' mice, ', params.cell_type], 'Interpreter', 'none') 
 
 h(1) = subplot(3,3,[2,5]);
 imagesc(x1, y1, mean_peri_event_activity(sort_idx,:)) 
@@ -59,7 +67,7 @@ cbar1          = colorbar;
 caxis(c_lim)
 cbar1.FontSize = 10;
 cbar1.Position =[0.6500 0.3900 0.0100 0.4960];
-title(['Mean ', params.signal_type], FontSize=12)
+title(['Mean ',title_text params.signal_type], FontSize=12)
 
 h(2) = subplot(3,3,8);
 shadedErrorBar(time, mean(mean_peri_event_activity, 'omitnan'),  signal_SE);

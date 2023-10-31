@@ -28,7 +28,12 @@ sessionID      = sData.sessionInfo.sessionID;
 switch params.event_type
     case 'SWR'
 
-        select_swr_idx = sData.ephysdata.absRipIdx; 
+        if strcmp(params.beh_state, 'awake')
+            select_swr_idx = sData.ephysdata.absRipIdx; 
+        elseif strcmp(params.beh_state, 'sleep')
+            select_swr_idx = sort([sData.ephysdata.NREM_spindle_uncoupled_swr, sData.ephysdata.spindle_coupled_swr]);
+        end
+
         % Get the indicies of user specified SWR types
         event_idx = get_swr_idx(params.swr_for_analysis ,sData,select_swr_idx, params);
         
