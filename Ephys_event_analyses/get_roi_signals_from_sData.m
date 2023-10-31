@@ -40,10 +40,9 @@ end
 % Z-score normalize
 if strcmp(params.zscore, 'yes') && strcmp(params.cell_type, 'pc')
     signal_to_plot{1,:} = zscore(signal_to_plot{1,:} , 0 ,2);
-    signal_to_plot{2,:} = zscore(signal_to_plot{2,:} , 0 ,2);
-elseif strcmp(params.zscore, 'yes') && strcmp(params.cell_type, 'axon')
-    signal_to_plot{1,:} = zscore(signal_to_plot{1,:} , 0 ,2);
-
+    try signal_to_plot{2,:} = zscore(signal_to_plot{2,:} , 0 ,2); catch, end
+% elseif strcmp(params.zscore, 'yes') && strcmp(params.cell_type, 'axon')
+%     signal_to_plot{1,:} = zscore(signal_to_plot{1,:} , 0 ,2);
 end
 
 % 
