@@ -18,6 +18,7 @@ else
     time                             = mean_session_data{1, 1}{3,1};
     mean_peri_event_activity         = mean_session_data{1, 1}{1,1};
     event_idx                        = mean_session_data{1, 1}{5,1};
+    all_data                         = mean_session_data{1, 1}{6,1};
 end
 
 % Calculate standard error

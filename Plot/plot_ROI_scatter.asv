@@ -115,27 +115,27 @@ for rois_to_plot = 1:7
     plot_factor = 60 - sub_factor;
     
     if rois_to_plot < 7
-        if rois_to_plot > 3
-            col = [0.3010 0.7450 0.9330];
+        if rois_to_plot < 4
+            col = [0.9290 0.6940 0.1250];
         else
-            col = [0.6350 0.0780 0.1840];
+            col = [0.4660 0.6740 0.1880];
         end
         roi_nr = list_neuron(rois_to_plot);
 
         plot(time_vector, zscore( signal_to_plot(roi_nr,:))-plot_factor, 'Color',col), hold on
-        text(-80, -plot_factor, 0, ['ROI ', num2str(roi_nr)], FontSize=12)
+        text(-70, -plot_factor, 0, ['ROI ', num2str(roi_nr)])
     elseif rois_to_plot == 7
         run_speed_ds       = downsample(sData.daqdata.runSpeed, 10);
         time_vector_ephys  = linspace(0, size(run_speed_ds,1), size(run_speed_ds,1))/250;
-        plot(time_vector_ephys, (smoothdata(run_speed_ds, 'gaussian', 100))*0.2-plot_factor, 'Color','k');
+        plot(time_vector_ephys, (smoothdata(run_speed_ds, 'gaussian', 100))*0.2-plot_factor );
         txt = sprintf('Running\n speed');
-       text(-85, -plot_factor, 0, txt, FontSize=12)
+       text(-70, -plot_factor, 0, txt)
     end
 
     set(gca,'ytick',[])
     sub_factor = sub_factor-10;
 end
-xlabel('Time (s)', FontSize=12)
+xlabel('Time (s)', FontSize=16)
 
 % Overlay state bouts as colored patches
 y_ax_lim = [-50 -120];

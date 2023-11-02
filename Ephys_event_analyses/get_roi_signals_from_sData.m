@@ -31,10 +31,10 @@ switch params.cell_type
     case {'pc', 'in'}
         signal_to_plot{1,:} = sData.imdata.roiSignals(2).(txt)(pc_rois,:);
         signal_to_plot{2,:} = sData.imdata.roiSignals(2).(txt)(in_rois,:);
-        cmap                = [-1 2];
+        cmap                = [0 2];
     case 'axon'
         signal_to_plot{1,:} = sData.imdata.roiSignals(2).(['mergedAxons',axon_txt]);
-        cmap                = [-1 2 ];
+        cmap                = [0 2 ];
 end
 
 % Z-score normalize

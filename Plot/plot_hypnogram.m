@@ -9,10 +9,10 @@ function plot_hypnogram(sData)
 % Initialize empty vector
 hypnogram_vector = zeros(1, length(sData.behavior.NREM_vector));
 
-frames = sData.daqdata.frame_onset_reference_frame;
-srate = 2500;
-framerate= find_imaging_framerate(sData);
-rec_length_sec        = size(sData.ephysdata2.lfp, 1)/2500;
+% frames         = sData.daqdata.frame_onset_reference_frame;
+srate          = 2500;
+% framerate      = find_imaging_framerate(sData);
+% rec_length_sec = size(sData.ephysdata2.lfp, 1)/2500;
 
 % Create hypnogram vector
 hypnogram_vector(sData.behavior.quiet_wakefulness == 1)  = 0;
@@ -23,18 +23,15 @@ hypnogram_vector(sData.behavior.REM_vector  == 1)        = 3;
 % Find minimum and maximum values in signals for centering plot label
 ECoG_min_max_values          = [min(sData.ephysdata2.lfp), max(sData.ephysdata2.lfp)];
 EMG_min_max_values           = [min(sData.ephysdata3.lfp), max(sData.ephysdata3.lfp)];
-Running_speed_min_max_values = [min(sData.daqdata.runSpeed), max(sData.daqdata.runSpeed)];
+% Running_speed_min_max_values = [min(sData.daqdata.runSpeed), max(sData.daqdata.runSpeed)];
 
 % Get various behavioral state snippets
-
-% Snippet length = 10s
-snippet_length = 2500*10;
 
 % Offset the extracted signal snippet somewhat (REM theta is typically better 
 % a few seconds into REM states rather than from the beginning of the
 % state)
 snippet_length = srate*10;
-snippet_offset = srate*5;
+% snippet_offset = srate*5;
 
 [eventStartIdx_QW, eventStopIdx_QW ]  = findTransitions( sData.behavior.quiet_wakefulness );
 % Check if any state epochs are > 10 seconds
@@ -116,7 +113,7 @@ title('QW')
 axis off,
 
 % ECoG
-h(1) = subplot(7,3,[4:6]);
+h(1) = subplot(7,3,(4:6));
 plot(time_vector, sData.ephysdata2.lfp, 'k'),
 set(gca, 'xlim', [time_vector(1) time_vector(end)])
 axis on
@@ -140,7 +137,7 @@ xline( NREM_bout_end/srate, '--', 'LineWidth',2, 'color', [0.8500 0.3250 0.0980]
 
 
 % EMG
-h(2) = subplot(7,3,[7:9]);
+h(2) = subplot(7,3,(7:9));
 plot(time_vector, sData.ephysdata3.lfp, 'k'),
 set(gca, 'xlim', [time_vector(1) time_vector(end)])
 axis on
@@ -151,7 +148,7 @@ text(x, ytickvalue, str, 'HorizontalAlignment', 'right','FontSize',font_size, 'P
 set(gca,'xtick',[])
 
 % Run speed
-h(3) = subplot(7,3,[10:12]);
+h(3) = subplot(7,3,(10:12));
 plot(time_vector, sData.daqdata.runSpeed, 'k')
 set(gca, 'xlim', [time_vector(1) time_vector(end)], 'ylim',[0 10])
 axis on
@@ -162,7 +159,7 @@ text(x, ytickvalue, str, 'HorizontalAlignment', 'right','FontSize',font_size, 'P
 set(gca,'xtick',[])
 
 % Hypnogram
-h(4) = subplot(7,3, [13:15]);
+h(4) = subplot(7,3, (13:15));
 plot(time_vector, hypnogram_vector, 'k', 'LineWidth',1);
 set(gca, 'xlim', [time_vector(1) time_vector(end)], 'ylim', [0 3])
 axis off
@@ -176,19 +173,21 @@ for i = ytickvalues+1
 end
 
 % Time-frequency plot
-h(6) = subplot(7,3,[16:18]);
-contourf(time_ecog,freq_ecog,10*log10( pow_ecog),300,'linecolor','none'), caxis([-50 -20]), colormap jet
+h(6) = subplot(7,3,(16:18));
+contourf(time_ecog,freq_ecog,10*log10( pow_ecog),300,'linecolor','none'), 
+clim([-50 -20]), colormap jet
 text(-60, 15,0, 'S1 ECoG')
 ylabel('(Hz)', FontSize = 10);
 h(6).FontSize = 10;
 set(gca,'xtick',[])
-% cb = colorbar;
-% cb.Position(1) = 0.91;
-% cb.Position(3) = 0.01;
-% ylabel(cb,'Power (dB)')
+cb = colorbar;
+cb.Position(1) = 0.91;
+cb.Position(3) = 0.01;
+ylabel(cb,'Power (dB)')
 
-h(7) = subplot(7,3,[19:21]);
-contourf(time_lfp,freq_lfp,10*log10( pow_lfp),300,'linecolor','none'), caxis([-50 -20]), colormap jet
+h(7) = subplot(7,3,(19:21));
+contourf(time_lfp,freq_lfp,10*log10( pow_lfp),300,'linecolor','none')
+clim([-50 -20]), colormap jet
 text(-57, 15,0, 'CA1 LFP')
 h(7).FontSize = 10;
 xlabel('Time (s)', FontSize=14)
