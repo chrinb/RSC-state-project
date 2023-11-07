@@ -10,9 +10,10 @@ function plot_hypnogram(sData)
 hypnogram_vector = zeros(1, length(sData.behavior.NREM_vector));
 
 % frames         = sData.daqdata.frame_onset_reference_frame;
-srate          = 2500;
-% framerate      = find_imaging_framerate(sData);
-% rec_length_sec = size(sData.ephysdata2.lfp, 1)/2500;
+srate = 2500;
+ecog  = sData.ephysdata2.lfp;
+emg   = sData.ephysdata3.lfp;
+run_speed = sData.daqdata.runSpeed;
 
 % Create hypnogram vector
 hypnogram_vector(sData.behavior.quiet_wakefulness == 1)  = 0;
@@ -21,8 +22,8 @@ hypnogram_vector(sData.behavior.NREM_vector == 1)        = 2;
 hypnogram_vector(sData.behavior.REM_vector  == 1)        = 3;
 
 % Find minimum and maximum values in signals for centering plot label
-ECoG_min_max_values          = [min(sData.ephysdata2.lfp), max(sData.ephysdata2.lfp)];
-EMG_min_max_values           = [min(sData.ephysdata3.lfp), max(sData.ephysdata3.lfp)];
+ECoG_min_max_values          = [min(ecog), max(ecog)];
+EMG_min_max_values           = [min(emg), max(emg)];
 % Running_speed_min_max_values = [min(sData.daqdata.runSpeed), max(sData.daqdata.runSpeed)];
 
 % Get various behavioral state snippets
@@ -84,7 +85,22 @@ end
 %% Plot hypnogram, ECoG, and EMG
 
 % Create time vector for plotting
-time_vector  = linspace(0, length(sData.ephysdata.lfp), length(sData.ephysdata.lfp))/2500;
+time_vector  = linspace(0, length(ecog), length(ecog))/2500;
+
+%%  Downsample x 10
+time_vector = downsample( time_vector, 10);
+ecog        = downsample( ecog, 10);
+emg         = downsample( emg, 10);
+run_speed   = downsample( run_speed, 10);
+hypnogram_vector = downsample( hypnogram_vector, 10);
+% freq_ecog   = downsample(freq_ecog, 10);
+%  time_ecog = downsample(time_ecog, 10);
+%  pow_ecog = downsample(pow_ecog, 10);
+% freq_lfp = downsample(freq_lfp, 10);
+%  time_lfp = downsample(time_lfp, 10);
+%  pow_lfp  = downsample(pow_lfp, 10);
+
+ %% Plot
 time_snippet = linspace(0, snippet_length, snippet_length)/2500;
 font_size    = 10;
 y_lim = [-.2 .6];
@@ -114,7 +130,7 @@ axis off,
 
 % ECoG
 h(1) = subplot(7,3,(4:6));
-plot(time_vector, sData.ephysdata2.lfp, 'k'),
+plot(time_vector, ecog, 'k'),
 set(gca, 'xlim', [time_vector(1) time_vector(end)])
 axis on
 ytickvalue = median(ECoG_min_max_values);
@@ -138,7 +154,7 @@ xline( NREM_bout_end/srate, '--', 'LineWidth',2, 'color', [0.8500 0.3250 0.0980]
 
 % EMG
 h(2) = subplot(7,3,(7:9));
-plot(time_vector, sData.ephysdata3.lfp, 'k'),
+plot(time_vector, emg, 'k'),
 set(gca, 'xlim', [time_vector(1) time_vector(end)])
 axis on
 ytickvalue = median(EMG_min_max_values);
@@ -149,7 +165,7 @@ set(gca,'xtick',[])
 
 % Run speed
 h(3) = subplot(7,3,(10:12));
-plot(time_vector, sData.daqdata.runSpeed, 'k')
+plot(time_vector, run_speed, 'k')
 set(gca, 'xlim', [time_vector(1) time_vector(end)], 'ylim',[0 10])
 axis on
 ytickvalue = 5;
@@ -174,8 +190,10 @@ end
 
 % Time-frequency plot
 h(6) = subplot(7,3,(16:18));
-contourf(time_ecog,freq_ecog,10*log10( pow_ecog),300,'linecolor','none'), 
-clim([-50 -20]), colormap jet
+% contourf(time_ecog,freq_ecog,10*log10( pow_ecog),300,'linecolor','none'), 
+imagesc(time_ecog,flipud(freq_ecog), 10*log10(pow_ecog) )
+
+clim([-45 -20]), colormap jet
 text(-60, 15,0, 'S1 ECoG')
 ylabel('(Hz)', FontSize = 10);
 h(6).FontSize = 10;
@@ -184,10 +202,14 @@ cb = colorbar;
 cb.Position(1) = 0.91;
 cb.Position(3) = 0.01;
 ylabel(cb,'Power (dB)')
+y_ticks = [ 20 10 1 ];
+yticklabels(y_ticks)
 
 h(7) = subplot(7,3,(19:21));
-contourf(time_lfp,freq_lfp,10*log10( pow_lfp),300,'linecolor','none')
-clim([-50 -20]), colormap jet
+% contourf(time_lfp,freq_lfp,10*log10( pow_lfp),300,'linecolor','none')
+imagesc(time_lfp,flipud(freq_lfp), 10*log10(pow_lfp) ), colorbar
+yticklabels(y_ticks)
+clim([-45 -20]), colormap jet
 text(-57, 15,0, 'CA1 LFP')
 h(7).FontSize = 10;
 xlabel('Time (s)', FontSize=14)

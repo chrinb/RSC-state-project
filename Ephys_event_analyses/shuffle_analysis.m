@@ -12,15 +12,15 @@ nr_of_shuffles                 = varargin{1,2};
 peri_event_activity_single_ROI = varargin{1,3};
 roinr                          = varargin{1,4};
 idx_modulated_rois             = varargin{1,5};
-% mean_activity                  = varargin{1,6};
-time_win                       = varargin{1,7};
-min_nr_events                  = varargin{1,8};
+time_win                       = varargin{1,6};
+min_nr_events                  = varargin{1,7};
 
 % initialize variables
 mean_activity_all_shuffle_iterations = zeros(nr_of_shuffles, win_length);
 
-% Exclude ROIs with fewer than 5 deconvolved dF/F events in the PETH
-check_nr_of_events = peri_event_activity_single_ROI > 0.05;
+% Exclude ROIs with fewer than 5 deconvolved dF/F
+% events in the PETH
+check_nr_of_events = peri_event_activity_single_ROI > 0.2;
 sum_events         = sum(check_nr_of_events,2);
 event_check        = sum(sum_events >=1); 
 

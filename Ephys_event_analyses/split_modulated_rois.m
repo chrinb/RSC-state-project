@@ -1,4 +1,4 @@
-function [ROIs_activated_idx, ROIs_suppressed_idx] = split_modulated_rois(signal_event_activity_mean_zscore, win_length, params, event_mod_ROI_idx)
+function [ROIs_activated_idx, ROIs_suppressed_idx] = split_modulated_rois(mean_event_activity, win_length, params, event_mod_ROI_idx)
 
 % Written by Christoffer Berge | Vervaeke Lab
 
@@ -6,15 +6,17 @@ function [ROIs_activated_idx, ROIs_suppressed_idx] = split_modulated_rois(signal
 % peri-event activity to mean baseline activity
 
 % Define baseline and peri-event (test) wndow
-base_win       = (1:31*2);
-test_window    = select_mod_win(win_length, params.event_type);
+base_win = (1:31*2);
+test_win = select_mod_win(win_length, params.event_type);
 
 [ROIs_activated_idx, ROIs_suppressed_idx] = deal([]);
 
-% Loop over modulated ROIs
-for roi_nr = event_mod_ROI_idx
+is_base_greater_than_test = @(signal,roi,test,base) mean(signal(roi,base)) > mean(signal(roi,test));
 
-    if is_base_greater_than_test(signal_event_activity_mean_zscore, roi_nr, base_win, test_window)
+% Loop over modulated ROIs
+for roi_nr = event_mod_ROI_idx'
+
+    if is_base_greater_than_test(mean_event_activity, roi_nr, base_win, test_win)
         ROIs_suppressed_idx        = [ROIs_suppressed_idx; roi_nr];
     else
         ROIs_activated_idx        = [ROIs_activated_idx; roi_nr];

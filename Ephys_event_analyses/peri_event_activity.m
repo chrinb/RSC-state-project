@@ -55,10 +55,10 @@ end
 t = 1;
 
 % Loop over nr of ROIs
-for roinr = 1:size(signal,1) 
+for roi_nr = 1:size(signal,1) 
     
     % Extract signal from currrent ROI
-    roi_signal        = signal(roinr, :); 
+    roi_signal = signal(roi_nr,:);
 
     % Get all peri-SWR activity windows from current ROI
     peri_event_activity = extract_avg_activity(event_idx, roi_signal, peri_event_activity, nr_of_seconds, params);
@@ -67,7 +67,7 @@ for roinr = 1:size(signal,1)
     all_data(t,:,:)   = peri_event_activity;
     
     % store mean SWR-activity
-    mean_event_activity(roinr,:)  = mean(peri_event_activity, 'omitnan');
+    mean_event_activity(roi_nr,:)  = mean(peri_event_activity, 'omitnan');
 
     t = t+1;
 end

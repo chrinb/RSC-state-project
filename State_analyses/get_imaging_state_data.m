@@ -38,7 +38,7 @@ threshold_start = imaging_sampling_rate*threshold;
 threshold_stop  = signal_end - (imaging_sampling_rate*threshold);
 
 % Minimum duration in seconds for AW, QW, NREM, and REM episodes
-min_ep_duration = [1 1 20 30];
+min_ep_duration_in_frames = [20 30 1 1].*imaging_sampling_rate;
 
 % Loop over the four different state  (AW, QW, NREM, REM)
 for state_nr = 1:4
@@ -57,30 +57,35 @@ for state_nr = 1:4
             % Check if episode fits criteria
             ep_fits_criteria = @(x, y, z, a, b) x(1) > y && x(2) < z && numel(x(1):x(2)) > a(b);
 
-            if ep_fits_criteria(temp_ep_times, threshold_start, threshold_stop, min_ep_duration, state_nr )
+            if ep_fits_criteria(temp_ep_times, threshold_start, threshold_stop, min_ep_duration_in_frames, state_nr )
                 
                 temp_state_snippet_times{state_ep_nr,1} = temp_ep_times(1):temp_ep_times(2);
                 temp_state_snippet{state_ep_nr, 1}      = signal(:, temp_state_snippet_times{state_ep_nr,1});
+                temp_state_duration{state_ep_nr, 1}     = length(temp_ep_times(1):temp_ep_times(2))/imaging_sampling_rate;
             else
-                temp_state_snippet_times{state_ep_nr,1} = [];
-                temp_state_snippet{state_ep_nr,1}       = [];
+                temp_state_snippet_times{state_ep_nr, 1} = [];
+                temp_state_snippet{state_ep_nr, 1}       = [];
+                temp_state_duration{state_ep_nr, 1}      = [];
             end
         end
 
         % Put adjusted state vectors into new cell array
-        state_times_2use{state_nr,1}    = temp_state_snippet_times;
-        state_snippets_2use{state_nr,1} = temp_state_snippet ;
+        state_times_2use{state_nr, 1}     = temp_state_snippet_times;
+        state_snippets_2use{state_nr, 1}  = temp_state_snippet ;
+        state_durations_2use{state_nr, 1} = temp_state_duration;
     else
-        state_times_2use{state_nr,1}    = [];
-        state_snippets_2use{state_nr,1} = [];
+        state_times_2use{state_nr,1}      = [];
+        state_snippets_2use{state_nr,1}   = [];
+        state_durations_2use{state_nr, 1} = [];
     end
-    clear temp_state_snippet_times temp_state_snippet
+    clear temp_state_snippet_times temp_state_snippet temp_state_duration
 end
 
 % Store output in struct
 state_data = struct();
 state_data.all_state_times    = state_times_2use;
 state_data.all_state_snippets = state_snippets_2use;
+state_data.all_bout_durations = state_durations_2use;
 % 
 % % Convert state logical vector from ephys to 2P time (NOTE: states are
 % % changed: 1 = NREM, 2 = REM, 3 = active, 4 = quiet)

@@ -24,7 +24,7 @@ cell_idx_in            = find( cellfun(@(c) strcmp('inhibitory', c),  {roi_arr.c
 try
     total_nr_rois = total_nr_rois(logical(sData.imdata.ch2_grid_classficiation) );
 catch
-    msg = ['No grid ROI classification available!'];
+    msg = 'No grid ROI classification available!';
 end
 
 pc_rois = intersect(total_nr_rois, cell_idx_pc);

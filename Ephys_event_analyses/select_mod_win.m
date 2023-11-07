@@ -11,10 +11,10 @@ keyword    = varargin{1,2};
 frames_in_1sec = 31;
 
 switch keyword
-    case 'swr'
+    case 'SWR'
         % window (0 to +500ms)
         test_window    = round( (win_length/2) : (win_length/2) + frames_in_1sec/2 );
-    case 'spindle'
+    case 'Spindle'
         % window 0ms - 1s
         test_window    = round( (win_length/2) :  (win_length/2) + frames_in_1sec);
 end

@@ -82,14 +82,19 @@ end
 
 state_vectors_2p = get_state_logicals(sData);
 
-[signal_to_plot, ~, ~, ~] = get_roi_signals_from_sData(sData, params);
+[signal_to_plot, ~,  pc_rois, in_rois] = get_roi_signals_from_sData(sData, params);
 
 if strcmp(params.cell_type, 'pc')
     signal_to_plot = signal_to_plot{1,:};
+    roi_nr_in_entire_dataset = pc_rois(idx);
+
 elseif strcmp(params.cell_type, 'in')
     signal_to_plot = signal_to_plot{2,:};
+    roi_nr_in_entire_dataset = in_rois(idx);
+
 elseif strcmp(params.cell_type, 'axon')
-    signal_to_plot = signal_to_plot{1,:};
+    signal_to_plot = signal_to_plot{1,1};
+    roi_nr_in_entire_dataset = idx;
 end
 
 
@@ -108,8 +113,10 @@ time_vector           = linspace(0, size(signal_to_plot,2), size(signal_to_plot,
 figure;
 sgtitle(['Neurons with lowest/highest ', params.beh_state, '/QW ratios'])
 
-list_neuron = [idx(1:3),  idx(end-2:end)];    
+list_neuron  = [idx(1:3),  idx(end-2:end)];  
+list_neuron2 = [roi_nr_in_entire_dataset(1:3), roi_nr_in_entire_dataset(end-2:end)];
 sub_factor  = 0;
+running_speed_scale_factor = 0.3;
 for rois_to_plot = 1:7
 
     plot_factor = 60 - sub_factor;
@@ -120,16 +127,33 @@ for rois_to_plot = 1:7
         else
             col = [0.6350 0.0780 0.1840];
         end
-        roi_nr = list_neuron(rois_to_plot);
+        roi_nr            = list_neuron(rois_to_plot);
+        roi_nr_in_dataset = list_neuron2(rois_to_plot);
+        if strcmp(params.zscore, 'yes')
+            signal =  okada( zscore( signal_to_plot(roi_nr,:)), 2 );
+        else
+            signal =  okada( signal_to_plot(roi_nr,:), 2 );
+        end
 
-        plot(time_vector, zscore( signal_to_plot(roi_nr,:))-plot_factor, 'Color',col), hold on
-        text(-80, -plot_factor, 0, ['ROI ', num2str(roi_nr)], FontSize=12)
+        plot(time_vector, signal-plot_factor, 'Color',col), hold on
+        txt = sprintf(['ROI ', num2str(roi_nr_in_dataset), newline, 'ratio: ',  num2str(ratios(roi_nr))] );
+        text(-80, -plot_factor, 0,txt, FontSize=12)
+
+        % Scale bar 10 z-score DF/F
+        if rois_to_plot == 6
+            plot([0 0],[-plot_factor -plot_factor+10], 'LineWidth', 3, 'Color',[0 0 0])
+        end
     elseif rois_to_plot == 7
         run_speed_ds       = downsample(sData.daqdata.runSpeed, 10);
         time_vector_ephys  = linspace(0, size(run_speed_ds,1), size(run_speed_ds,1))/250;
-        plot(time_vector_ephys, (smoothdata(run_speed_ds, 'gaussian', 100))*0.2-plot_factor, 'Color','k');
+        plot(time_vector_ephys, (smoothdata(run_speed_ds, 'gaussian', 100))*running_speed_scale_factor-plot_factor, 'Color','k');
         txt = sprintf('Running\n speed');
-       text(-85, -plot_factor, 0, txt, FontSize=12)
+        text(-85, -plot_factor, 0, txt, FontSize=12)
+
+        % Scale bar = 10 cm/s
+        scale_bar_ylim = [0 10]*running_speed_scale_factor;
+        scale_bar_ylim = scale_bar_ylim-plot_factor;
+        plot([0 0], scale_bar_ylim, 'LineWidth', 3, 'Color',[0 0 0])
     end
 
     set(gca,'ytick',[])

@@ -57,6 +57,7 @@ fprintf('\n Averaged signals for state %.1f seconds',t)
 mean_padded_state           = mean(padded_state_mat, 1 , 'omitnan');
 mean_interp_state           = mean(interp_state_mat, 1, 'omitnan');
 mean_interp_state_SE        = std(interp_state_mat, 1, 'omitnan')/sqrt( size(interp_state_mat,1));
+mean_interp_state_DF        = std(interp_state_mat, 1, 'omitnan');
 
 % Save results in struct
 output = struct();
@@ -65,3 +66,4 @@ output.interp_state_mat     = interp_state_mat;
 output.mean_padded_state    = mean_padded_state;
 output.mean_interp_state    = mean_interp_state;
 output.mean_interp_state_SE = mean_interp_state_SE;
+output.mean_interp_state_DF = mean_interp_state_DF;
