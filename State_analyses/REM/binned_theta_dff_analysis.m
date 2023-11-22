@@ -1,4 +1,4 @@
-function [mean_pow_vec, mean_dff_vec] = binned_theta_dff_analysis(sData, params)
+function [mean_pow_vec, mean_dff_vec, mean_dff_mat] = binned_theta_dff_analysis(sData, params)
 
 % Written by Christoffer Berge | Vervaeke lab
 
@@ -24,8 +24,9 @@ switch params.cell_type
         dff = sData.imdata.roiSignals(2).mergedAxonsDffFilt;
 end
 
-% Z-score DF/F
-% dff = zscore(dff, 0, 2);
+if strcmp(params.zscore, 'yes')
+    dff = zscore(dff, 0, 2);
+end
 
 % Vector to assign ephys time points to imaging time 
 frames = sData.daqdata.frame_onset_reference_frame;
@@ -66,7 +67,7 @@ state_data = freq_band_analysis(sData, params);
 txt = 'state_ephys_filt_ampl';
 
 % Preallocate
-[mean_pow_cell, mean_dff_cell] = deal( cell( size(state_data.(txt), 1), 1));
+[mean_pow_cell, mean_binned_dff_cell, mean_dff] = deal( cell( size(state_data.(txt), 1), 1));
 
 % Loop over episodes
 for ep_nr = 1:size(state_data.(txt), 1)
@@ -105,24 +106,25 @@ for ep_nr = 1:size(state_data.(txt), 1)
         state_snippet_imaging = frames(state_data.state_times(ep_nr, 1)):frames(state_data.state_times(ep_nr, 2));
         
         % Extract imaging data during episode and compute mean over ROIs
-        tmp_data_imag = dff(:, state_snippet_imaging);
-        tmp_data_imag = mean(tmp_data_imag, 1, 'omitnan');
+        tmp_data_imag      = dff(:, state_snippet_imaging);
+        tmp_data_imag_mean = mean(tmp_data_imag, 1, 'omitnan');
         
+        mean_dff{ep_nr, 1} = tmp_data_imag_mean;
         % Find remainder after splitting data into bins
-        pnts_to_remove_imag = mod( size(tmp_data_imag,2), bin_win_imag);
+        pnts_to_remove_imag = mod( size(tmp_data_imag_mean,2), bin_win_imag);
         
         % Remove remainder from data
-        data_trim_imag = tmp_data_imag(:, 1:end-pnts_to_remove_imag);
+        data_trim_imag = tmp_data_imag_mean(:, 1:end-pnts_to_remove_imag);
         
         % Split data into bins
         reshaped_data_imag = reshape(data_trim_imag,  bin_win_imag, []);
     
         % Compute mean power per bin
-        mean_dff = mean( reshaped_data_imag,1);
+        mean_binned_dff = mean( reshaped_data_imag,1);
     
         % Add remainder
 %         mean_dff_cell{ep_nr, 1} = [mean_dff, mean(tmp_data_imag(end-pnts_to_remove_imag:end))];
-        mean_dff_cell{ep_nr, 1} = mean_dff;
+        mean_binned_dff_cell{ep_nr, 1} = mean_binned_dff;
 
         % Because of different sampling rates, the nr of bins may differ despite
         % "identical" bin window length. Therefore find the dataset with fewest bins,
@@ -130,7 +132,7 @@ for ep_nr = 1:size(state_data.(txt), 1)
         min_bin_nr = min( [size(reshaped_data_imag, 2), size(reshaped_data_ephys, 2)]);
 
         mean_pow_cell{ep_nr, 1} = mean_pow_cell{ep_nr, 1}(1:min_bin_nr);
-        mean_dff_cell{ep_nr, 1} = mean_dff_cell{ep_nr, 1}(1:min_bin_nr);
+        mean_binned_dff_cell{ep_nr, 1} = mean_binned_dff_cell{ep_nr, 1}(1:min_bin_nr);
 
         % Normalize to mean power in this frequency band during session
         % (regardless of behavioral state)
@@ -142,4 +144,5 @@ end
 
 % Concatenate mean binned power and DF/F values into vector shape
 mean_pow_vec = horzcat( mean_pow_cell{:});
-mean_dff_vec = horzcat( mean_dff_cell{:});
+mean_dff_vec = horzcat( mean_binned_dff_cell{:});
+mean_dff_mat =  mean_dff;

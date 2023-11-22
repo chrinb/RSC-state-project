@@ -11,6 +11,7 @@ session, as well as a state-activity vector (hypnogram)
 
 state_vectors_2p = get_state_logicals(sData);
 
+
 %% Create hypnogram vector
 
 % Initialize empty vector
@@ -89,12 +90,21 @@ if isfield(sData, 'episodes')
     REM_start_end = REM_episodes./2500;
 end
 
-% signal_to_plot{1,1} = okada(signal_to_plot{1,1}, 2);
-% signal_to_plot{2,1} = okada(signal_to_plot{2,1}, 2);
+signal_to_plot{1,1} = okada(signal_to_plot{1,1}, 2);
+signal_to_plot{2,1} = okada(signal_to_plot{2,1}, 2);
+% test1 =signal_to_plot{1,1};
+% % test2 =signal_to_plot{2,1};
+% 
+% signal_to_plot{1,1} = test1 ;
+% % % signal_to_plot{2,1} = test2;
+% signal_to_plot{1,1} = smoothdata(signal_to_plot{1,1}, 2,'gaussian', 20);
+% signal_to_plot{2,1} = smoothdata(signal_to_plot{2,1}, 2, 'gaussian', 20);
 
-font_size = 16;
 %% Plot 
+
 figure, 
+% cmap = [0 2]
+font_size = 16;
 
 num_signals = size(signal_to_plot,1);
 
@@ -127,6 +137,9 @@ for num_cell_types = 1:size(signal_to_plot,1)
     c.Position(1) = 0.92;
     c.Position(3) = 0.01;
     hAx(num_cell_types*2).XAxis.Visible = 'off';
+    % if num_cell_types == 1 && size(signal,1) > 100
+    %     set(gca, 'ylim',[1 100])
+    % end
 
     hAx(num_cell_types*3) = subplot(n_plots, 1, num_cell_types*3+1);
     plot(time_vector, mean(signal,'omitnan'), 'Color',mean_colors{num_cell_types})
@@ -169,7 +182,6 @@ for num_cell_types = 1:size(signal_to_plot,1)
     plot([time_vector(end)+5 time_vector(end)+5], [-.5 .5],'k', 'LineWidth',3)
     
 end
-
 xlabel('Time (s)', FontSize=16)
 linkaxes(hAx, 'x')
 set(gca, 'xlim', [time_vector(1) time_vector(end)+5])

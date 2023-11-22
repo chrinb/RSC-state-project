@@ -9,7 +9,7 @@ swr_idx = sData.ephysdata.absRipIdx;
 
 lfp = sData.ephysdata.lfp;
 
-run_speed = smoothdata(downsample( sData.daqdata.runSpeed, 10), 'gaussian', 250);
+run_speed = smoothdata(downsample( sData.daqdata.runSpeed,20), 'gaussian', 200);
 % run_speed = downsample(sData.daqdata.runSpeed, 10);
 
 swr_idx_vec          = nan(1, length(lfp));
@@ -30,8 +30,8 @@ hypnogram_vector(sData.behavior.NREM_vector == 1)        = 2;
 hypnogram_vector(sData.behavior.REM_vector  == 1)        = 3;
 %% Plot
 time_vec = (0:length(lfp)-1)./2500;
-time_vec_ds = downsample(time_vec, 10);
-lfp_ds = downsample(lfp, 10);
+time_vec_ds = downsample(time_vec, 20);
+lfp_ds = downsample(lfp, 20);
 % font_size = 16;
 y_ax_lim = [-4 max(counts)];
 
@@ -45,9 +45,9 @@ run_speed_scale = [-4 -3.5];
 fig = figure; 
 
 hold on
-b = bar(x_bins, counts, 1, 'FaceColor',[.5 .5 .5],'EdgeColor',[0 0 0]);
-b.ShowBaseLine = "off";
-plot([-10 -10], [0 max(counts)], 'k', 'LineWidth',3)
+% b = bar(x_bins, counts, 1, 'FaceColor',[.5 .5 .5],'EdgeColor',[0 0 0]);
+% b.ShowBaseLine = "off";
+% plot([-10 -10], [0 max(counts)], 'k', 'LineWidth',3)
 
 plot(time_vec_ds, run_speed-4, 'k', 'LineWidth',1)
 plot([-10 -10], run_speed_scale, 'k', 'LineWidth',3)
@@ -55,7 +55,7 @@ plot([-10 -10], run_speed_scale, 'k', 'LineWidth',3)
 plot(time_vec, swr_idx_vec-1.5, 'D', 'Color','b')
 plot([-10 -10], [-2.5 -1.5], 'k', 'LineWidth',3)
 
-plot(time_vec,lfp-2, 'k', 'LineWidth',.5 )
+plot(time_vec_ds,lfp_ds-2, 'k', 'LineWidth',.5 )
 
 % plot(time_vec, hypnogram_vector+3, 'k', 'LineWidth',1 )
 % ytickvalues = 3:6;

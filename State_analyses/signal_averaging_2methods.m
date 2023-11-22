@@ -78,8 +78,8 @@ for session_nr = 1:num_sessions
         padded_state_mat = [padded_state_mat; tmp_state_pad'];
         interp_state_mat = [interp_state_mat; tmp_state_interp];
 
-        padded_state_mat_smooth = [padded_state_mat_smooth; smoothdata(tmp_state_pad', 'Gaussian', 2500)];
-        interp_state_mat_smooth = [interp_state_mat_smooth; smoothdata(tmp_state_interp, 'Gaussian', 2500)];
+        padded_state_mat_smooth = [padded_state_mat_smooth; smoothdata(tmp_state_pad', 'Gaussian', 2500*2)];
+        interp_state_mat_smooth = [interp_state_mat_smooth; smoothdata(tmp_state_interp, 'Gaussian', 2500*2)];
 
     end
 end
