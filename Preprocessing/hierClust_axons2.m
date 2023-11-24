@@ -1,4 +1,4 @@
-function sData = hierClust_axons2(varargin)
+function sData = hierClust_axons2(sData, params)
 
 % Written by ?. Modified by Christoffer Berge
 
@@ -9,17 +9,17 @@ function sData = hierClust_axons2(varargin)
 
 %% Get ROI indices
 
-if nargin == 1 
-    sData        = varargin{1,1};
-    [pc_rois, ~] = remove_cells(sData);
-    dff          = sData.imdata.roiSignals(2).newdff(pc_rois,:);
-    smoothSignal = 1;   
+% if nargin == 1 
+% sData        = varargin{1,1};
+[pc_rois, ~] = remove_cells(sData, params);
+dff          = sData.imdata.roiSignals(2).newdff(pc_rois,:);
+smoothSignal = 1;   
 %     decmonv        = sData.imdata.roiSignals(2).ciaDeconvolved(pc_rois,:);
-else
-    dff          = varargin{1,1};
-    smoothSignal = varargin{1,2};
+% else
+    % dff          = varargin{1,1};
+    % smoothSignal = varargin{1,2};
 %     deconv       = varargin{1,3};
-end
+% end
 
 merged_ROI        = [];
 
@@ -29,11 +29,11 @@ merged_ROI        = [];
 nan_idx = isnan(dff);
 dff(nan_idx(:,1),:) = [];
 
-try 
-    roiClustIDs = varargin{1,5};
-catch
-    roiClustIDs = [];
-end
+% try 
+%     roiClustIDs = varargin{1,5};
+% catch
+roiClustIDs = [];
+% end
 
 % reduce noise effects
 if smoothSignal == 1

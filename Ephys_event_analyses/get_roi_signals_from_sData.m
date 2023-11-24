@@ -9,7 +9,7 @@ function [signal_to_plot, cmap, pc_rois, in_rois] = get_roi_signals_from_sData(s
 % excitatory vs. inhibitory cells) or access a subset of ROIs (NOT
 % FINISHED)
 
-[pc_rois, in_rois] = remove_cells_longitudinal(sData);
+[pc_rois, in_rois] = remove_cells_longitudinal(sData, params);
 
 
 switch params.signal_type

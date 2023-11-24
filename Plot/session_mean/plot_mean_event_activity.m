@@ -12,6 +12,7 @@ if size(mean_session_data,1) > 1
     mean_peri_event_activity  = vertcat(all_session_data_cat{1,:});
     params                    = mean_session_data{1, 1}{2, 1};  
     time                      = mean_session_data{1, 1}{3, 1};  
+    xlabel_text               = mean_session_data{1, 1}{7, 1};
 else
     sessionID                        = mean_session_data{1, 1}{4,1};
     params                           = mean_session_data{1, 1}{2,1};
@@ -19,6 +20,7 @@ else
     mean_peri_event_activity         = mean_session_data{1, 1}{1,1};
     event_idx                        = mean_session_data{1, 1}{5,1};
     all_data                         = mean_session_data{1, 1}{6,1};
+    xlabel_text                      = mean_session_data{1, 1}{7, 1};
 end
 
 % Calculate standard error
@@ -44,12 +46,6 @@ n_mice = numel(unique(mouseID));
 %% Plot results
 x1 = [time(1), time(end)];
 y1 = [1 size(mean_peri_event_activity,1)];
-
-if strcmp(params.event_type, 'SWR')
-    xlabel_text = ' SWR peak ';
-elseif strcmp(params.event_type, 'Spindle')
-    xlabel_text = ' Spindle onset ';
-end
 
 if strcmp(params.zscore, 'yes')
     title_text = 'z-score ';

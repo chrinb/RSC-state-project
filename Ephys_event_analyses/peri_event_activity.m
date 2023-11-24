@@ -25,31 +25,46 @@ frames         = sData.daqdata.frame_onset_reference_frame;
 time           = (-(31*nr_of_seconds):(31*nr_of_seconds))./31;
 sessionID      = sData.sessionInfo.sessionID;
 
-switch params.event_type
-    case 'SWR'
+% switch params.event_type
+[event_idx, xlabel_text] = select_event_type(sData, params, frames);
 
-        if strcmp(params.beh_state, 'awake')
-            select_swr_idx = sData.ephysdata.absRipIdx; 
-        elseif strcmp(params.beh_state, 'sleep')
-            select_swr_idx = sort([sData.ephysdata.NREM_spindle_uncoupled_swr, sData.ephysdata.spindle_coupled_swr]);
-        end
-
-        % Get the indicies of user specified SWR types
-        event_idx = get_swr_idx(params.swr_for_analysis ,sData,select_swr_idx, params);
-        
-        % Convert SWR time stamps from e-phys to 2P time
-        event_idx = frames(round(event_idx));
-        
-        % Preallocate 
-        mean_event_activity = zeros(size(signal,1), nr_of_frames);
-        peri_event_activity = zeros(length(event_idx), nr_of_frames) ;
-        all_data            = zeros(size(signal,1), size(event_idx,2), size(time,2));                
-
-    case 'Spindle'
-%         output = sleep_spindle_an(sData, params);
-    case 'SWA'
-%         output = so_sig_an(sData, params);
-end
+mean_event_activity = zeros(size(signal,1), nr_of_frames);
+peri_event_activity = zeros(length(event_idx), nr_of_frames) ;
+all_data            = zeros(size(signal,1), size(event_idx,2), size(time,2));     
+%     case 'SWR'
+% 
+%         if strcmp(params.beh_state, 'awake')
+%             select_swr_idx = sData.ephysdata.absRipIdx; 
+%         elseif strcmp(params.beh_state, 'sleep')
+%             select_swr_idx = sort([sData.ephysdata.NREM_spindle_uncoupled_swr, sData.ephysdata.spindle_coupled_swr]);
+%         end
+% 
+%         % Get the indicies of user specified SWR types
+%         event_idx = get_swr_idx(params.swr_for_analysis ,sData,select_swr_idx, params);
+% 
+%         % Convert SWR time stamps from e-phys to 2P time
+%         event_idx = frames(round(event_idx));
+% 
+%         % Preallocate 
+%         mean_event_activity = zeros(size(signal,1), nr_of_frames);
+%         peri_event_activity = zeros(length(event_idx), nr_of_frames) ;
+%         all_data            = zeros(size(signal,1), size(event_idx,2), size(time,2));                
+% 
+%     case 'Spindle'
+% %         output = sleep_spindle_an(sData, params);
+%     case 'SWA'
+% %         output = so_sig_an(sData, params);
+%     case 'NREM_start'
+%         nrem_start_stop     = nrem_sleep(sData);
+%         event_idx           = frames(nrem_start_stop(:,1));
+%         mean_event_activity = zeros(size(signal,1), nr_of_frames);
+%         peri_event_activity = zeros(length(event_idx), nr_of_frames) ;
+%         all_data            = zeros(size(signal,1), size(event_idx,2), size(time,2));      
+% 
+%     case 'NREM_stop'
+%         nrem_start_stop = nrem_sleep(sData);
+%         event_idx       = frames(nrem_start_stop(:,2));
+% end
 
 %% Run main analysis
 t = 1;
@@ -89,3 +104,4 @@ output{3,1} = time;
 output{4,1} = sessionID;
 output{5,1} = event_idx;
 output{6,1} = all_data;
+output{7,1} = xlabel_text;

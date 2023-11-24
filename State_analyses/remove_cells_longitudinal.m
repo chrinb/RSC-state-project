@@ -1,4 +1,4 @@
-function [pc_rois, in_rois] = remove_cells_longitudinal(sData)
+function [pc_rois, in_rois] = remove_cells_longitudinal(sData, params)
 
 % Written by Christoffer Berge | Vervaeke lab
 
@@ -8,7 +8,7 @@ function [pc_rois, in_rois] = remove_cells_longitudinal(sData)
 
 %% Get exctitatory and inhibitory indices (THIS NEEDS ITS OWN FUNCTION!!)
 % Find excitatory/inhibitory indicies 
-[pc_rois, in_rois] = remove_cells(sData);
+[pc_rois, in_rois] = remove_cells(sData, params);
 
 % If session is part of multi-day recordings, remove ROIs not present in
 % current session
