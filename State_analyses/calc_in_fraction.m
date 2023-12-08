@@ -1,4 +1,4 @@
-function fraction = calc_in_fraction(sData, params)
+function [fraction, pc_rois, in_rois] = calc_in_fraction(sData, params)
 
 % Written by Christoffer Berge | Vervaeke lab
 
@@ -8,7 +8,7 @@ function fraction = calc_in_fraction(sData, params)
 roi_arr = sData.imdata.roi_arr;
 
 % Find excitatory/inhibitory indicies 
-[pc_rois, in_rois] = remove_cells(sData, params);
+[pc_rois, in_rois] = remove_cells_longitudinal(sData, params);
 
 % If session is part of multi-day recordings, remove ROIs not present in
 % current session

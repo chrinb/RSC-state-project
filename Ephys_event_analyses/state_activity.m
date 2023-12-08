@@ -11,7 +11,7 @@ with maximal DF/F per state
 
 
 %% Get exctitatory and inhibitory indices
-[pc_rois, in_rois] = remove_cells_longitudinal(sData);
+[pc_rois, in_rois] = remove_cells_longitudinal(sData, params);
 
 % Select data
 switch params.cell_type

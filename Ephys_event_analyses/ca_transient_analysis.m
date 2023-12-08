@@ -9,7 +9,7 @@ calcium transients
 
 % Also include "integrated DF/F per transient"??
 
-[pc_rois, in_rois] = remove_cells_longitudinal(sData);
+[pc_rois, in_rois] = remove_cells_longitudinal(sData, params);
 
 % Select data
 switch params.cell_type
@@ -17,11 +17,17 @@ switch params.cell_type
     sig_transients = sData.imdata.roiSignals(2).mergedAxons_sig_transients;
     txt = 'axon';
     case 'pc'
-    sig_transients = sData.imdata.roiSignals(2).all_sig_transients(pc_rois,:);
+    sig_transients = sData.imdata.roiSignals(2).pc_sig_transients;
     txt = 'pc';
     case 'in'
-    sig_transients = sData.imdata.roiSignals(2).all_sig_transients(in_rois,:);
-    txt = 'pc';
+    sig_transients = sData.imdata.roiSignals(2).in_sig_transients;
+    txt = 'in';
+    % case 'pc'
+    % sig_transients = sData.imdata.roiSignals(2).all_sig_transients(pc_rois,:);
+    % txt = 'pc';
+    % case 'in'
+    % sig_transients = sData.imdata.roiSignals(2).all_sig_transients(in_rois,:);
+    % txt = 'in';
 %     casre 'all'
 %     dff = sData.imdata.roiSignals(2).newdff;
 end

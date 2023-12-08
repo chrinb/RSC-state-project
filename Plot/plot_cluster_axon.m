@@ -6,7 +6,7 @@ function plot_cluster_axon(sData)
 % average, and the Okada-filtered signals. (Note that only the average and
 % filtered time series are scaled to match the DF/F scale bar. The single
 % ROIs are scaled separately).
-params.remove_within_grid_ROIs = 'yes';
+params.use_roi_classification = 'grid';
 
 % Load data
 [pc_rois, ~] = remove_cells(sData, params);

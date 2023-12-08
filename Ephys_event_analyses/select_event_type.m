@@ -1,9 +1,9 @@
-function [event_idx, xlabel_text] = select_event_type(sData, params, frames)
+function [event_idx, xlabel_text, window_size] = select_event_type(sData, params, frames)
 
 %{
 Select event type to analyze and get associated indices and variables
 %}
-
+sleep_win_size = 5;
 
 switch params.event_type
 
@@ -20,7 +20,8 @@ switch params.event_type
         
         % Convert SWR time stamps from e-phys to 2P time
         event_idx = frames(round(event_idx));
-             
+        
+        window_size = 1;
         xlabel_text = ' SWR peak ';
     case 'Spindle'
 %         output = sleep_spindle_an(sData, params);
@@ -31,18 +32,23 @@ switch params.event_type
         nrem_start_stop = nrem_sleep(sData);
         event_idx       = frames(nrem_start_stop(:,1));
         xlabel_text     = ' NREM start ';
-   
+        window_size     = sleep_win_size;
     case 'NREM_stop'
         nrem_start_stop = nrem_sleep(sData);
         event_idx       = frames(nrem_start_stop(:,2));
         xlabel_text     = ' NREM stop ';
+        window_size     = sleep_win_size;
+
      case 'REM_start'
         rem_start_stop = rem_sleep(sData);
         event_idx      = frames(rem_start_stop(:,1));
         xlabel_text    = ' REM start ';
+        window_size    = sleep_win_size;
 
      case 'REM_stop'
         rem_start_stop = rem_sleep(sData);
         event_idx      = frames(rem_start_stop(:,2));   
         xlabel_text    = ' REM stop ';
+        window_size     = sleep_win_size;
+
 end

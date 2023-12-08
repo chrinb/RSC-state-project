@@ -144,8 +144,11 @@ xline( QW_bout_start/srate, '--', 'LineWidth',2, 'color', [0.3010 0.7450 0.9330]
 xline( QW_bout_end/srate, '--', 'LineWidth',2, 'color', [0.3010 0.7450 0.9330])
 
 % Plot REM snippet limits
-xline( REM_bout_start/srate, '--', 'LineWidth',2, 'color',[0.6350 0.0780 0.1840])
-xline( REM_bout_end/srate, '--', 'LineWidth',2, 'color', [0.6350 0.0780 0.1840])
+try
+    xline( REM_bout_start/srate, '--', 'LineWidth',2, 'color',[0.6350 0.0780 0.1840])
+    xline( REM_bout_end/srate, '--', 'LineWidth',2, 'color', [0.6350 0.0780 0.1840])
+catch
+end
 
 % Plot NREM snippet limites
 xline( NREM_bout_start/srate, '--', 'LineWidth',2, 'color', [0.8500 0.3250 0.0980])

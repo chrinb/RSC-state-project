@@ -1,12 +1,12 @@
-function plot_piezo_session_activity(varargin)
+function plot_piezo_session_activity(sData, params)
 
 % Written by Christoffer Berge | Vervaeke lab
 
-% Plot state-activity vector (hypnogram), roi x time colorplots, and
-% averages for different cell types in multi-plane recordings (Piezo)
+%{
+Plot state-activity vector (hypnogram), roi x time colorplots, and
+averages for different cell types in multi-plane recordings (Piezo)
+%}
 
-sData  = varargin{1,1};
-params = varargin{1,2};
 
 %% Find indices of excitatory & inhibitory cells, and axons
 [cell_idx_pc, cell_idx_in, cell_idx_axon, all_idx_pc, all_idx_in, ~] = remove_cells_piezo(sData);
@@ -88,20 +88,28 @@ for current_plane = plane_nr
             % Extract the DF/F for cell type for current plane (and remove
             % piezo artefacts)
             temp_dff      = sData.imdata.roiSignals(2).newdff( all_idx_in(roi_plane_idx), dff_diff+1:end);
+            clim = [0 1];
         case 'axon'
             temp_dff = sData.imdata.roiSignals(2).mergedAxonsDffFilt( sData.imdata.plane_indices_merged == current_plane, dff_diff+1:end);
+            clim = [0 .5];
         case 'pc'
             roi_plane_idx = sData.imdata.plane_indices(all_idx_pc) == current_plane;
             temp_dff      = sData.imdata.roiSignals(2).newdff( all_idx_pc(roi_plane_idx), dff_diff+1:end);
+            clim = [0 1];
     end
         
     % Get nr of ROIs from current plane
+    if strcmp(params.zscore, 'yes')
+        temp_dff = zscore(temp_dff, 0 ,2);
+    end
+    % temp_dff = okada(temp_dff,2);
+
     y1       = [1, size(temp_dff,1) ];
 
     h(subplot_nr*2) = subplot( numel(plane_nr)*2 + 1, 1, subplot_nr*2);
     imagesc(time_vector, y1, temp_dff)
-    ylabel('ROI #', FontSize=14)
-    caxis([0 .3])
+    ylabel(['Plane ',num2str(current_plane)], FontSize=14)
+    caxis(clim)
     c = colorbar;
     c.Position(1) = 0.92;
     c.Position(3) = 0.01;

@@ -25,17 +25,13 @@ cell_idx_in = find( cellfun(@(c) strcmp('inhibitory', c),  {roi_arr.celltype} , 
 % criteria
 total_nr_rois = 1:length(roi_arr);
 
-try
-    if strcmp(params.remove_within_grid_ROIs, 'yes')
-        try
-            total_nr_rois = total_nr_rois(logical(sData.imdata.ch2_grid_classficiation) );
-        catch
-            msg = 'No grid ROI classification available!';
-        end
-    end
-catch
+switch params.use_roi_classification
+    case 'grid'
+          total_nr_rois = total_nr_rois(logical(sData.imdata.ch2_grid_classficiation) );
+    case 'ch2_across_session'
+        total_nr_rois = total_nr_rois(logical(sData.imdata.ch2_acrossSession_classification) );
 end
-    
+
 
 pc_rois = intersect(total_nr_rois, cell_idx_pc);
 in_rois = intersect(total_nr_rois, cell_idx_in);

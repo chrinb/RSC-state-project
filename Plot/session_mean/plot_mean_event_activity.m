@@ -29,7 +29,7 @@ signal_SE             = std(mean_peri_event_activity, 'omitnan') ./ sqrt(size(me
 if strcmp(params.signal_type, 'deconv')
     c_lim        = [-.05 .5];
 elseif strcmp(params.signal_type,  'Dff')
-    c_lim        = [-.5 .5];
+    c_lim        = [0 2];
 elseif strcmp(params.signal_type,  'transients')
     c_lim        = [-.05 .5];
 end

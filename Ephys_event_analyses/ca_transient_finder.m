@@ -8,19 +8,23 @@ function sData = ca_transient_finder(sData, params)
 
 
 %% Get exctitatory and inhibitory indices
-[pc_rois, in_rois] = remove_cells_longitudinal(sData);
+[pc_rois, in_rois] = remove_cells_longitudinal(sData, params);
 
 % Select data
 switch params.cell_type
     case 'axon'
     dff    = sData.imdata.roiSignals(2).mergedAxonsDffFilt;
     txt    = 'mergedAxons';
-    case {'in','pc'}
-    dff = sData.imdata.roiSignals(2).newdff;
-    txt  = 'all';
-%     case 'pc'
-%     dff = sData.imdata.roiSignals(2).newdff(pc_rois,:);
-%     txt = 'pc';
+    % case {'pc', 'in'}
+    % dff = sData.imdata.roiSignals(2).newdff;
+    % txt  = 'all';
+
+    case 'in'
+    dff = sData.imdata.roiSignals(2).newdff(in_rois,:);
+    txt = 'in';
+    case 'pc'
+    dff = sData.imdata.roiSignals(2).newdff(pc_rois,:);
+    txt = 'pc';
 %     case 'all'
 %     dff = sData.imdata.roiSignals(2).newdff;
 end

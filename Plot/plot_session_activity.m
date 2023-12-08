@@ -11,7 +11,14 @@ session, as well as a state-activity vector (hypnogram)
 
 state_vectors_2p = get_state_logicals(sData);
 
-
+%% Theta signals
+theta = sData.ephysdata.thetaband;
+delta = sData.ephysdata.deltaband;
+theta_ampl = abs(hilbert(theta));
+delta_ampl = abs(hilbert(delta));
+thetaA = smoothdata(theta_ampl, 'gaussian', 5000);
+deltaA = smoothdata(delta_ampl, 'gaussian', 5000);
+thetaR = thetaA./deltaA;
 %% Create hypnogram vector
 
 % Initialize empty vector
@@ -81,6 +88,7 @@ end
 imaging_sampling_rate = find_imaging_framerate(sData);
 
 time_vector  = linspace(0, length(roi_data), length(roi_data))/imaging_sampling_rate;
+time_ephys   = (0:length(theta)-1)./2500;
 
 if isfield(sData, 'episodes')
     REM_episodes = rem_sleep(sData);
@@ -90,8 +98,11 @@ if isfield(sData, 'episodes')
     REM_start_end = REM_episodes./2500;
 end
 
-signal_to_plot{1,1} = okada(signal_to_plot{1,1}, 2);
-signal_to_plot{2,1} = okada(signal_to_plot{2,1}, 2);
+% frames = sData.daqdata.frame_onset_reference_frame;
+% test = frames(REM_episodes)./imaging_sampling_rate;
+
+% signal_to_plot{1,1} = okada(signal_to_plot{1,1}, 2);
+% signal_to_plot{2,1} = okada(signal_to_plot{2,1}, 2);
 % test1 =signal_to_plot{1,1};
 % % test2 =signal_to_plot{2,1};
 % 
@@ -124,7 +135,10 @@ end
 for num_cell_types = 1:size(signal_to_plot,1)
     
     signal = signal_to_plot{num_cell_types,:};
-
+    
+    if strcmp(params.filter, 'yes')
+        signal = okada(signal,2);
+    end
     y1 = [1 size(signal,1)];
 
     hAx(num_cell_types*2) = subplot(n_plots, 1, [2 3]+num_cell_types*num_cell_types-1);
@@ -144,6 +158,7 @@ for num_cell_types = 1:size(signal_to_plot,1)
     hAx(num_cell_types*3) = subplot(n_plots, 1, num_cell_types*3+1);
     plot(time_vector, mean(signal,'omitnan'), 'Color',mean_colors{num_cell_types})
     hold on
+    plot(time_ephys, thetaR*0.2)
     y_lims = get(gca, 'ylim');
     hAx(num_cell_types*3).YAxis.Visible = 'off';
     
