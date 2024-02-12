@@ -25,11 +25,14 @@ cell_idx_in = find( cellfun(@(c) strcmp('inhibitory', c),  {roi_arr.celltype} , 
 % criteria
 total_nr_rois = 1:length(roi_arr);
 
-switch params.use_roi_classification
-    case 'grid'
-          total_nr_rois = total_nr_rois(logical(sData.imdata.ch2_grid_classficiation) );
-    case 'ch2_across_session'
-        total_nr_rois = total_nr_rois(logical(sData.imdata.ch2_acrossSession_classification) );
+try
+    switch params.use_roi_classification
+        case 'grid'
+              total_nr_rois = total_nr_rois(logical(sData.imdata.ch2_grid_classficiation) );
+        case 'ch2_across_session'
+            total_nr_rois = total_nr_rois(logical(sData.imdata.ch2_acrossSession_classification) );
+    end
+catch
 end
 
 

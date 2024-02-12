@@ -1,4 +1,4 @@
-function signal_event_activity = extract_avg_activity(varargin)
+function peri_event_activity = extract_avg_activity(varargin)
 
 % Written by Christoffer Berge | Vervaeke Lab
 
@@ -8,9 +8,9 @@ function signal_event_activity = extract_avg_activity(varargin)
 
 % Get variables 
 event_idx                    = varargin{1,1}; % SWR idx, spindle idx, slow wave idx, etc.
-roi_signal                   = varargin{1,2}; 
-% roi_signal_zscore            = varargin{1,3};
-signal_event_activity        = varargin{1,3};
+signal                       = varargin{1,2}; 
+% roi_signal_zscore              = varargin{1,3};
+peri_event_activity        = varargin{1,3};
 % signal_event_activity_zscore = varargin{1,5};
 nr_of_seconds                = varargin{1,4};
 params                       = varargin{1,5};
@@ -40,11 +40,11 @@ for event_nr = 1:length(event_idx)
 
     % Extract snippets of data around event. Skip events at the beginning 
     % or end with a window shorter than length specified in seconds by user above
-    if event_window_start > 1 && event_window_end < size(roi_signal,2)
+    if event_window_start > 1 && event_window_end < size(signal,2)
        
         % Data
-        signal_event_activity(event_nr, :) = ...
-            roi_signal(event_window_start:event_window_end);
+        peri_event_activity(event_nr, :) = ...
+            signal(event_window_start:event_window_end);
         % Z-scored data
 %         signal_event_activity_zscore(event_nr, :) = ...
 %             roi_signal_zscore(event_window_start:event_window_end); 
@@ -52,9 +52,9 @@ for event_nr = 1:length(event_idx)
     
     % Baseline subtraction
     if checkParameter(params.baseSub, 1, 'subtract')
-        baselineDFF                              = mean(signal_event_activity(event_nr, baseline_win),'omitnan');
+        baselineDFF                              = mean(peri_event_activity(event_nr, baseline_win),'omitnan');
 %         baselineDFF_zscore                       = mean(signal_event_activity_zscore(event_nr, baseline_win), 'omitnan');
-        signal_event_activity(event_nr,:)        = signal_event_activity(event_nr,:)-baselineDFF;
+        peri_event_activity(event_nr,:)        = peri_event_activity(event_nr,:)-baselineDFF;
 %         signal_event_activity_zscore(event_nr,:) = signal_event_activity_zscore(event_nr,:)-baselineDFF_zscore;
     end
 end

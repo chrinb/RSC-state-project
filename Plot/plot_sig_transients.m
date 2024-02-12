@@ -1,4 +1,4 @@
-function plot_sig_transients(varargin)
+function plot_sig_transients(sData, params)
 
 % Written by Christoffer Berge | Vervaeke lab
 
@@ -8,14 +8,13 @@ function plot_sig_transients(varargin)
 % axonal data).
 
 % Load data
-sData              = varargin{1,1};
 
 % Find excitatory/inhibitory indicies 
-[pc_rois, in_rois] = remove_cells_longitudinal(sData);
+[pc_rois, in_rois] = remove_cells_longitudinal(sData, params);
 
-n_rois_to_plot     = varargin{1,2};
+n_rois_to_plot     = params.n_rois_to_plot;
 
-switch varargin{1,3}
+switch params.cell_type
     case 'pc'
     rois_to_plot = randsample(size(pc_rois,2), n_rois_to_plot);
     dff          = sData.imdata.roiSignals(2).newdff(pc_rois,:);

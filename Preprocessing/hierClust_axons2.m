@@ -58,11 +58,11 @@ tree   = linkage(double(Y), linkg); %, 'correlation');
 T      = cluster(tree,'Cutoff', 0.4, 'Criterion', 'distance');
 nclust = max(T);
 
-Plot cluster
-figure()
-H= dendrogram(tree, size(tree,1));
-set(H,'LineWidth',1.5, 'Color', [0 0 0])
-yline(0.4, 'LineWidth', 2, 'LineStyle','--')
+%Plot cluster
+% figure()
+% H= dendrogram(tree, size(tree,1));
+% set(H,'LineWidth',1.5, 'Color', [0 0 0])
+% yline(0.4, 'LineWidth', 2, 'LineStyle','--')
 
 
 % sort the clusters by highest mean correlation

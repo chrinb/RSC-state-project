@@ -5,10 +5,19 @@ function sData = lfp_deltaband(sData, params)
 % Filter LFP and ECoG in slow oscillation, delta & sigma band (part of this
 % was missing in the original pipeline...)
 
-
-signal           = sData.ephysdata.(params.signal);
+switch params.signal
+    case 'lfp'
+        signal = sData.ephysdata.lfp;
+        val = [];
+    case 'lfp2'
+        signal = sData.ephysdata2.lfp;
+        val = 2;
+    case 'lfp3'
+        signal = sData.ephysdata3.lfp;
+        val = 3;
+end
 % ecog          = sData.ephysdata2.lfp;
-signal_length = length(sData.ephysdata.lfp);
+signal_length = length(signal);
 srate         = 2500;
 nyquist       = srate/2;
 
@@ -34,6 +43,10 @@ switch params.freq_band
         freq       = [5 12];
         label = 'thetaband';
         order_nr  = round( 25*srate/freq(1) );
+    case '0.5-30Hz'
+        freq       = [.5 30];
+        label = 'Filt';
+        order_nr  = round( 5*srate/freq(1) );
 end
 filter_req_shape = [0 freq(1)-freq(1)*transw, freq(1) freq(2), freq(2)+freq(2)*transw nyquist]/nyquist;
 
@@ -44,31 +57,23 @@ filter_req_shape = [0 freq(1)-freq(1)*transw, freq(1) freq(2), freq(2)+freq(2)*t
 
 filtkern  = fir1(order_nr, freq/nyquist);
 
-% order_delta     = round( 3*srate/delta_freq(1) );
-% filtkern_delta  = fir1(order_delta, delta_freq/nyquist);
-% 
-% order_sigma     = round( 20*srate/sigma_freq(1) );
-% filtkern_sigma  = fir1(order_sigma, sigma_freq/nyquist);
-
 %% Evaluate kernels and their power spectrum
 
 % Compute the power spectrum of the filter kernels
 filt_pow     = abs(fft(filtkern).^2);
-
-
 
 % Compute the frequencies vector and remove negative frequencies
 hz_vec      = linspace(0, nyquist, floor(length(filtkern)/2)+1);
 filtpow_trim = filt_pow(1:length(hz_vec));
 
 % Plot kernels
-% figure, 
-% plot(hz_vec, filtpow_trim, 'b', 'linew', 2), hold on
-% plot([0 freq(1) freq freq(2) nyquist], shape, 'r','linew', 2)
-% set(gca, 'xlim', [0, freq(2)*4])
-% xlabel('Frequency (Hz)'), ylabel('Filtergain')
-% legend({'Filterkernel'; 'Ideal filter'})
-% title([params.freq_band, ' ', num2str(freq)])
+figure, 
+plot(hz_vec, filtpow_trim, 'b', 'linew', 2), hold on
+plot([0 freq(1) freq freq(2) nyquist], shape, 'r','linew', 2)
+set(gca, 'xlim', [0, freq(2)*4])
+xlabel('Frequency (Hz)'), ylabel('Filtergain')
+legend({'Filterkernel'; 'Ideal filter'})
+title([params.freq_band, ' ', num2str(freq)])
 
 
 %% Apply filter kernels to data
@@ -84,7 +89,7 @@ filtered_signal  = filtfilt(filtkern, 1, signal);
 
 toc;
 % Save filtered signals in sData
-sData.ephysdata.(label)    = filtered_signal;
+sData.(['ephysdata', num2str(val)]).(label)    = filtered_signal;
 % sData.ephysdata.deltaband = delta_LFP_filtsig;
 % sData.ephysdata.sigmaband = sigma_LFP_filtsig;
 % 

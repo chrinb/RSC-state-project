@@ -1,4 +1,4 @@
-function [state_data, pc_rois, in_rois] = get_imaging_state_data(sData, params, sessionObject)
+function [state_data, pc_rois, in_rois] = get_imaging_state_data(sData, params)
 
 % Written by Christoffer Berge | Vervaeke lab
 
@@ -13,31 +13,19 @@ session, and exclude episodes that are (1) ongoing at recording start,
 % likely are ongoing states).
 
 % Get imaging data
+[signal, ~, pc_rois, in_rois] = get_roi_signals_from_sData(sData, params);
 
-% For Piezo sessions, extract axon data across layers 
-if strcmp(sessionObject.Exp_type, 'Piezo')
-    cell_type_layer_activity = get_mean_activity_piezo(sData, params);
-    signal = vertcat(cell_type_layer_activity{1, 1}{:});
-    
-    % Get 2P frame rate
-    imaging_sampling_rate = find_imaging_framerate(sData, 1);
-     [pc_rois, in_rois]   = deal([]);
-else
-    [signal, ~, pc_rois, in_rois] = get_roi_signals_from_sData(sData, params);
-
-    switch params.cell_type
-        case 'pc'
-        signal = signal{1,1};
-        case 'in'
-        signal = signal{2,1};
-        case 'axon'
-        signal = signal{1,1};
-    end
-
-    % Get 2P frame rate
-    imaging_sampling_rate = find_imaging_framerate(sData);
+switch params.cell_type
+    case 'pc'
+    signal = signal{1,1};
+    case 'in'
+    signal = signal{2,1};
+    case 'axon'
+    signal = signal{1,1};
 end
 
+% Get 2P frame rate
+imaging_sampling_rate = find_imaging_framerate(sData);
 
 % Get start/stop times for NREM, REM, QW, and AW (in that order!)
 all_state_times = get_state_start_stop_times(sData);
@@ -94,18 +82,8 @@ for state_nr = 1:4
 end
 
 %% Find NREM-REM-NREM indices
-% list_of_states = string(sData.episodes.state);
-% 
-% rem_idx = strcmp(list_of_states,'REM');
-% nrem_idx = strcmp(list_of_states, 'NREM');
-% 
-% if sum(rem_idx) > 0
-%     nrem_before_idx = find(rem_idx)-1
-%     nrem_after_idx = find(rem_idx)+1
-% 
-%     nrem_before = nrem_idx(nrem_before_idx);
-%     nrem_after  = nrem_idx(nrem_after_idx);
-% end
+list_of_states = sData.episodes(:, {'state'});
+
 
 
 %% Store output in struct

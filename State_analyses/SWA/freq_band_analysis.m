@@ -42,10 +42,10 @@ switch params.ephys_signal
         signal_filt      = sData.ephysdata2.(freq_band);
 end
 
-% if strcmp(params.zscore, 'yes')
-%     signal      = zscore(signal);
-%     signal_filt = zscore(signal_filt);
-% end
+if strcmp(params.zscore, 'yes')
+    signal      = zscore(signal);
+    signal_filt = zscore(signal_filt);
+end
 % Compute the amplitude envelope (power) of filtered signal
 signal_filt_ampl = abs( hilbert(signal_filt));
 

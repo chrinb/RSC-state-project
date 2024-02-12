@@ -25,7 +25,7 @@ frames = sData.daqdata.frame_onset_reference_frame;
 [event_idx, xlabel_text, window_size] = select_event_type(sData, params, frames);
 
 % Define variables
-nr_of_seconds  = 3*window_size;
+nr_of_seconds  = round( 3*window_size);
 nr_of_frames   = (nr_of_seconds*31*2)+1;
 time           = (-(31*nr_of_seconds):(31*nr_of_seconds))./31;
 sessionID      = sData.sessionInfo.sessionID;

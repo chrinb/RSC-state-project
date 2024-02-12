@@ -12,6 +12,7 @@ if size(mean_session_data,1) > 1
     mean_peri_event_activity  = vertcat(all_session_data_cat{1,:});
     params                    = mean_session_data{1, 1}{2, 1};  
     time                      = mean_session_data{1, 1}{3, 1};  
+    event_idx                 = horzcat(all_session_data_cat{5,:});
     xlabel_text               = mean_session_data{1, 1}{7, 1};
 else
     sessionID                        = mean_session_data{1, 1}{4,1};
@@ -29,7 +30,7 @@ signal_SE             = std(mean_peri_event_activity, 'omitnan') ./ sqrt(size(me
 if strcmp(params.signal_type, 'deconv')
     c_lim        = [-.05 .5];
 elseif strcmp(params.signal_type,  'Dff')
-    c_lim        = [0 2];
+    c_lim        = [-.5 .5];
 elseif strcmp(params.signal_type,  'transients')
     c_lim        = [-.05 .5];
 end
@@ -37,7 +38,8 @@ end
 % Sort ROIs according to mean z-scored activity in the -0.5 to + 0.5 interval
 % surrounding SWR peak
 frameshift    = round(.5/(1/31));
-interval_mean = mean(mean_peri_event_activity(:, ( median(1:187)-frameshift:median(1:187)+frameshift)),2);
+signal_length = length(time);
+interval_mean = mean(mean_peri_event_activity(:, ( median(1:signal_length)-frameshift:median(1:signal_length)+frameshift)),2);
 [max_val,~]   = max(interval_mean,[],2);
 [~, sort_idx] = sortrows(max_val);
 
@@ -53,12 +55,14 @@ else
     title_text = '';
 end
 
+%% Plot
 figure,
-sgtitle(['Peri-event activity, ' num2str(size(mean_session_data,1)) ' sessions, ', num2str(n_mice), ' mice, ', params.cell_type], 'Interpreter', 'none') 
+sgtitle(['Peri-event activity, ' num2str(size(mean_session_data,1)) ' sessions, ', num2str(n_mice), ' mice, ', params.cell_type, ', n events = ', num2str(numel(event_idx))], 'Interpreter', 'none') 
 
 h(1) = subplot(3,3,[2,5]);
 imagesc(x1, y1, mean_peri_event_activity(sort_idx,:)) 
 ylabel('ROI #', FontSize=16)
+colormap viridis
 set(gca, 'xtick',[])
 cbar1          = colorbar;
 caxis(c_lim)

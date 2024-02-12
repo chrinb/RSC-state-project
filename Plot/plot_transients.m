@@ -1,4 +1,4 @@
-function plot_transients(varargin)
+function plot_transients(sData, params)
 
 % Written by Christoffer Berge | Vervaeke lab
 
@@ -8,11 +8,10 @@ function plot_transients(varargin)
 % axonal data).
 
 % Load data
-sData              = varargin{1,1};
 % dff                = sData.imdata.roiSignals(2).newdff;
 
 % Find excitatory/inhibitory indicies 
-[pc_rois, in_rois] = remove_cells_longitudinal(sData);
+[pc_rois, in_rois] = remove_cells_longitudinal(sData, params);
 
 % try
 %     [pc_rois, in_rois] = remove_cells(sData);
@@ -22,7 +21,7 @@ sData              = varargin{1,1};
 % catch
 %     [pc_rois, in_rois] = remove_cells(sData);
 % end
-n_rois_to_plot = varargin{1,2};
+n_rois_to_plot = params.n_rois_to_plot;
 n_frames       = size(sData.imdata.roiSignals(2).newdff,2);
 % If this is a running session, also plot wheel position
 if isfield(sData, 'behavior.wheelPosDs')
@@ -37,7 +36,7 @@ if isfield(sData, 'behavior.wheelPosDs')
     end
 end
 
-switch varargin{1,3}
+switch params.cell_type
     case 'pc'
     rois_to_plot = randsample(size(pc_rois,2), n_rois_to_plot);
     dff          = sData.imdata.roiSignals(2).newdff(pc_rois,:);
@@ -55,6 +54,12 @@ switch varargin{1,3}
     deconv       = sData.imdata.roiSignals(2).mergedAxonsDec;  
 end
 
+if strcmp(params.filter, 'yes')
+    dff = okada(dff,2);
+end
+
+
+%% Plot
 figure,
 
 time_imaging  = linspace(1, size(dff,2), size(dff,2) )/31;

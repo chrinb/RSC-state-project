@@ -15,6 +15,15 @@ srate             = 2500;
 runSpeed          = sData.daqdata.runSpeed;
 runSpeed          = smoothdata(sData.daqdata.runSpeed, 'gaussian', srate);
 
+% At least one session had 8 sample points more in running speed vector
+% than ephys... correct for that
+if length(runSpeed) > length(sData.ephysdata.lfp)
+    runL = length(runSpeed);
+    runE = length(sData.ephysdata.lfp);
+    runSpeed(runE:end) = [];
+end
+
+
 threshold         = 1; % cm/s
 time              = linspace(1, size(runSpeed,1), size(runSpeed,1) )/srate;
 

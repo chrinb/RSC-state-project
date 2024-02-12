@@ -1,23 +1,9 @@
-function slope = calc_rem_slope_best_fit(sData, params)
+function [slope, signal_mean_event_snip, x_vals, sleep_ep_dur, R2] = calc_rem_slope_best_fit(sData, params)
 
 %{
 Calculate the slope from the best fit line of the mean population activity
-during REM
+during REM or NREM sleep
 %}
-
-params.cell_type                = 'pc';   
-% params.cell_type_               = {'pc','in', 'axon'};
-params.zscore                   = 'no';
-% params.zscore_                  = {'no', 'yes'};
-params.beh_state                = {'NREM'};
-% params.beh_state_               = {'NREM', 'REM', 'AW', 'QW'};
-params.signal_type              = 'Dff';
-% params.signal_type_             = {'Dff'; 'deconv'; 'transients'};
-params.use_roi_classification   =  'grid';   
-% params.use_roi_classification_  = {'grid', 'ch2_across_session', 'no'};
-params.filter                   = 'no';
-% params.filter_                  = {'yes', 'no'};
-
 
 % Get signals
 [signal_to_plot, ~] = get_roi_signals_from_sData(sData, params);
@@ -25,7 +11,7 @@ params.filter                   = 'no';
 if strcmp(params.cell_type, 'pc') || strcmp(params.cell_type, 'axon')
     signal = signal_to_plot{1,1};
 elseif strcmp( params.cell_type, 'in')
-    signal = signal_to_plot{1,2};
+    signal = signal_to_plot{2,1};
 end
 
 if strcmp(params.filter, 'yes')
@@ -33,32 +19,125 @@ if strcmp(params.filter, 'yes')
 end
 
 % Get 2P frame rate
-% imaging_sampling_rate = find_imaging_framerate(sData);
+imaging_sampling_rate = find_imaging_framerate(sData);
 
 frames = sData.daqdata.frame_onset_reference_frame;
 
-if isfield(sData, 'episodes')
-    REM_episodes = rem_sleep(sData);
+signal_end = size(sData.imdata.roiSignals(2).newdff,2);
+
+% Set threshold from recording start/end
+threshold       = 3; % seconds
+threshold_start = imaging_sampling_rate*threshold;
+threshold_stop  = signal_end - (imaging_sampling_rate*threshold);
+
+
+if isfield(sData, 'episodes') && strcmp(params.beh_state, 'REM')
+    event_episodes   = rem_sleep(sData);
+    min_sleep_length = imaging_sampling_rate*30;
+elseif isfield(sData, 'episodes') && strcmp(params.beh_state, 'NREM')
+    event_episodes   = nrem_sleep(sData);
+    min_sleep_length = imaging_sampling_rate*20;
 end
 
-REM_start_end = zeros( size(REM_episodes,1),2);
-slope         = zeros( size(REM_episodes,1),1);
-for rem_ep_nr = 1:size(REM_episodes,1)
-    REM_start_end(rem_ep_nr,:) = frames( [REM_episodes(rem_ep_nr,1), REM_episodes(rem_ep_nr,2)] );
+    % ep_fits_criteria = @(x, y, z, a) x(1) > y && x(2) < z && numel(x(1):x(2)) > a;
 
-    % Get REM episode snippet
-    signal_rem_snip      = signal(:, REM_start_end(1):REM_start_end(2) );
-    signal_mean_rem_snip = mean(signal_rem_snip);
+    % if ep_fits_criteria(sleep_start_end, threshold_start, threshold_stop, min_sleep_length)
+
+
+[sleep_start_end, p]  = deal( zeros( size(event_episodes,1),2));
+[slope, sleep_ep_dur] = deal( zeros( size(event_episodes,1),1));
+for event_ep_nr = 1:size(event_episodes,1)
+
+    sleep_start_end(event_ep_nr,:) = frames( [event_episodes(event_ep_nr,1), event_episodes(event_ep_nr,2)] );
     
-    % Best fit line
-    x = 1:length(signal_mean_rem_snip);
-    p = polyfit(x, signal_mean_rem_snip, 1);
-    
-    % 
-    % figure, 
-    % plot(x, signal_mean_rem_snip)
-    % hold on
-    % plot(x, polyval(p, x), 'LineWidth',2);
-    
-    slope(rem_ep_nr) = p(1);
+    % sleep_criteria_check = @(x,y,z) length( x(y,1):x(y,2)) > min_sleep_length;
+    ep_fits_criteria = @(x, y, z, a) x(1) > y && x(2) < z && numel(x(1):x(2)) > a;
+
+    % if sleep_criteria_check(sleep_start_end, event_ep_nr, min_sleep_length)
+    if ep_fits_criteria(sleep_start_end(event_ep_nr,:), threshold_start, threshold_stop, min_sleep_length)
+
+        % Get sleep event episode snippet
+        signal_event_snip                            = signal(:, sleep_start_end(event_ep_nr, 1):sleep_start_end(event_ep_nr, 2) );
+        
+        % Try lowpass filter
+        % signal_mean_event_snip{event_ep_nr,:}        = lowpass( mean(signal_event_snip), 0.001, imaging_sampling_rate);
+
+        % Try smoothing
+        % signal_mean_event_snip{event_ep_nr,:}        = smoothdata( mean(signal_event_snip), 'gaussian', 1000);
+
+        if strcmp(params.bin_signal, 'yes')
+            % Bin data
+            tmp_data_imag_mean                           = mean(signal_event_snip, 'omitnan');
+            bin_win_sec                                  = 2;
+            bin_win_frames                               = bin_win_sec*round(imaging_sampling_rate);
+            pnts_to_remove_imag                          = mod( size(mean(signal_event_snip),2), bin_win_frames);
+            data_trim_imag                               = tmp_data_imag_mean(:, 1:end-pnts_to_remove_imag);
+            reshaped_data                                = reshape(data_trim_imag,  bin_win_frames, []);
+            signal_mean_event_snip{event_ep_nr,:}        = mean( reshaped_data,1, 'omitnan'); 
+        else
+            signal_mean_event_snip{event_ep_nr,:}        = mean(signal_event_snip, 'omitnan');
+        end
+        
+        % Best fit line
+        x           = 1:length(signal_mean_event_snip{event_ep_nr,:});
+        % x_binned    = 1:length(signal_mean_event_snip_binned{event_ep_nr,:});
+        p(event_ep_nr,:) = polyfit(x, signal_mean_event_snip{event_ep_nr,:}, 1);
+        % p_binned(event_ep_nr,:) = polyfit(x_binned, signal_mean_event_snip_binned{event_ep_nr,:},1);
+        y_fit{event_ep_nr,:} = polyval( p(event_ep_nr,:), x);
+        SS_res             = sum( (signal_mean_event_snip{event_ep_nr,:} - y_fit{event_ep_nr,:}).^2);
+        SS_tot             = sum( (signal_mean_event_snip{event_ep_nr,:} - mean(signal_mean_event_snip{event_ep_nr,:}) ).^2 );
+        R2(event_ep_nr)    = 1 - SS_res/SS_tot;
+
+        figure(1) 
+        plot(x, signal_mean_event_snip{event_ep_nr,:})
+        hold on
+        plot(x, polyval(p(event_ep_nr,:), x), 'LineWidth',2);
+        % title(['Bin window = ', num2str(bin_win_sec),' (sec), R2 = ', num2str(R2(event_ep_nr))])
+        title(['R2 = ', num2str(R2(event_ep_nr))])
+
+        hold off
+        clear fig
+
+        slope(event_ep_nr)   = p(event_ep_nr,1);
+        x_vals{event_ep_nr}  = x; 
+        sleep_ep_dur(event_ep_nr) = length(signal_event_snip)./imaging_sampling_rate;
+
+        % Try detrend function
+        % dataI = iddata(signal_mean_event_snip{event_ep_nr,:}', [], 1);
+        % 
+        % [dataL_d,Tr] = detrend(dataI,1);
+        % m = Tr.OutputSlope
+        % b = Tr.OutputOffset
+        % t = dataL_d.SamplingInstants;
+        % TrLn = m*t+b;
+
+        % figure, hold on
+        % plot(dataI)
+        % plot(dataL_d)
+        % plot(TrLn)
+
+        % Try PCA
+        % data  = signal_event_snip - mean(signal_event_snip,2);
+        % N = size(signal_event_snip,2);
+        % cov_mat = data*data' /(N-1);
+        % cov_mat2 = cov(data');
+        % 
+        % [evecs, evals] = eig(cov_mat2);
+        % [evals, soidx] = sort( diag(evals), 'descend');
+        % evecs = evecs(:, soidx);
+        % 
+        % compts = evecs(:,1:3)'*data;
+        % 
+        % evals = 100*(evals/sum(evals));
+        % 
+        % [wcoeff,~,latent,~,explained] = pca(data);
+    else
+        p(event_ep_nr,:)                      = NaN;
+        slope(event_ep_nr)                    = NaN;
+        x_vals{event_ep_nr}                   = NaN; 
+        sleep_ep_dur(event_ep_nr)             = NaN;
+        signal_mean_event_snip{event_ep_nr,:} = NaN;
+        R2                                    = NaN;
+    end
+
 end
