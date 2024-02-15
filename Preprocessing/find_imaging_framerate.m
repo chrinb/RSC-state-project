@@ -6,8 +6,11 @@ function imaging_sampling_rate = find_imaging_framerate(varargin)
 
 sData = varargin{1,1};
 
-if isfield(sData, 'daqdataB')
+if isfield(sData, 'daqdataB') && isfield(sData, 'behavior')
     imaging_sampling_rate = sData.behavior.meta.imagingSamplingRate;
+% elseif isfield(sData.behavior.meta, 'imagingSamplingRate')
+%     imaging_sampling_rate = sData.behavior.meta.imagingSamplingRate;
+
 elseif isfield(sData, 'daqdata')
     frame_signal = sData.daqdata.frameSignal;
 
