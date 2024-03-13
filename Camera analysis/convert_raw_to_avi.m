@@ -29,23 +29,41 @@ fclose(data);
 % Split the file name and extension
 [~, recording_name, ~] = fileparts(raw_file_name);
 
+% Check if any files were found
+if isempty(files)
+    disp('No .txt files found in the specified folder.');
+else
+    % Loop through each file in the folder
+    for i = 1:length(files)
+        % Check if the file name contains "frametimes"
+        if contains(files(i).name, 'frametimes')
+            % Get the file name and path
+            cam_file_name = files(i).name;
+            cam_frames_path = fullfile(facemap_folder_path, cam_file_name);
+            break; % Stop searching once the first matching file is found
+        end
+    end
+end
+cam_time_stamps = vr.importPupilFrameTimes(cam_frames_path);
+t_pos           = posixtime(cam_time_stamps);
+cam_samples_sec = t_pos-t_pos(1);
+cam_samples_sec = cam_samples_sec(2:end);
+med_val = median( diff(cam_samples_sec));
+
 % Define parameters
 config_data_path = [facemap_folder_path,'\' config_file];
 ini_contents     = textread(config_data_path, '%s', 'delimiter', '\n', 'whitespace', '');
 cam_fps_char     = ini_contents{3};
-numbersAsNumeric = str2double(cam_fps_char);
 fps_num          = regexp(cam_fps_char, '\d+', 'match');
 
 fps = str2double( [fps_num{1} '.' fps_num{2}]);
-sData.daqdata.faceCam_fps = fps;
 
-% if abs(str2double(fps_num{1})-60) < abs(str2double(fps_num{1})-30)
-%     fps = 62;
-% elseif abs(str2double(fps_num{1})-60) > abs(str2double(fps_num{1})-30)
-%     fps = 31;
-% end
-
-
+if abs(fps - med_val*1000) > 1.5
+    fps_corrected = 30.9;
+    msgbox( ['ini file data is ', num2str(fps) 'Hz, now hardcoded to 30.9 Hz'])
+else 
+    fps_corrected = fps;
+end
 
 output_AVI_Name = [recording_name, '.avi'];  % Output .avi file name
 width = 250;  % Width of the image
@@ -63,7 +81,7 @@ outputAVIPath = fullfile(facemap_folder_path, output_AVI_Name);
 % Create VideoWriter object with specified output path
 % v = VideoWriter(outputAVIPath, 'Grayscale AVI');
 v = VideoWriter(outputAVIPath, 'MPEG-4');
-v.FrameRate = fps;
+v.FrameRate = fps_corrected;
 
 % Open the VideoWriter object
 open(v);

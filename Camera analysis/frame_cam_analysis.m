@@ -95,6 +95,7 @@ t_pos = posixtime(cam_time_stamps);
 
 % Remove the posixtime 
 cam_samples_sec = t_pos-t_pos(1);
+cam_samples_sec = cam_samples_sec(2:end);
 
 % Find time stamps of 2P frames in seconds
 frame_idx        = sData.daqdata.frameIndex_behavior_rig;
@@ -138,46 +139,62 @@ else
     idx2 = [];
 end
 
-missing_frame_idx = [idx1, idx2];
+missing_frame_idx = sort([idx1, idx2]);
 
-% missing_frame_idx = zeros(1, numel(val));
-% mf = [];
-% for i = 1:numel(val)
-%     % if val(i) > med_val 
-% 
-%         missing_frame_idx(i) = val_idx(i);
-% 
-%         k = l == val(i);
-%         mf = [mf, l2(k)];
-% 
-%     % Also look for frame interval smaller than frame rate (if interval is
-%     % large, the next interval can be shorter than the normal ~32ms interval) 
-%     % elseif val(i) < med_val
-%         missing_frame_idx(i) = val_idx(i);
-%          k = l == val(i);
-%         mf = [mf, l2(k)];
-% 
-%     % end
-%     clear k
-% end
-% missing_frame_idx(missing_frame_idx == 0) = [];
-
-% Check of camera FPS from ini file differs a lot from empirical fps. If
-% so, use empirical
-% mod_val = mode(val);
 
 if abs(fps - med_val*1000) > 1.5
     % fps_corrected = med_val*1000;
-    fps_corrected = 30.9;
-    sData.daqdata.faceCam_fps = fps_corrected;
-    % msgbox( [num2str(abs(fps - med_val*1000)),' difference in Hz between ini file data and empirical data. Corrected to ', num2str(fps_corrected)])
-    msgbox( ['ini file data is ', num2str(fps) 'Hz, now hardcoded to 30.9 Hz'])
-
+    if med_val < 0.2
+        fps_corrected = 30.9;
+        sData.daqdata.faceCam_fps = fps_corrected;
+        msgbox( ['ini file data is ', num2str(fps) 'Hz, now hardcoded to 30.9 Hz'])
+    elseif med_val > 0.2
+         fps_corrected = 59.9;
+        sData.daqdata.faceCam_fps = fps_corrected;
+        msgbox( ['ini file data is ', num2str(fps) 'Hz, now hardcoded to 59.9 Hz'])
+    end
 end
+
+%% Correct for missing frames
+
+missing_frames_diff = diff(cam_samples_sec);
+n_missing_frames    = missing_frames_diff(missing_frame_idx);
+
+cam_samples_corr = cam_samples_sec;
+adjusted_missing_frame_idx = missing_frame_idx;
+missing_frame_idx_stop = missing_frame_idx;
+
+for i = 1:numel(missing_frame_idx)
+    
+    tmp_idx = adjusted_missing_frame_idx(i);
+    
+    % If frame interval is below 1 sec, insert NaNs at the missing frame
+    % idx. If frame interval is longer, insert a bunch of NaNs in the
+    % interval
+    if n_missing_frames(i) < 1
+        cam_samples_corr( adjusted_missing_frame_idx(i)) = NaN;
+    else
+        tmp_nan_vector = NaN( length(cam_samples_corr(tmp_idx):fps_corrected/1000:cam_samples_corr(tmp_idx+1))-1, 1 );
+        
+        cam_samples_corr = [ cam_samples_corr(1:tmp_idx); tmp_nan_vector; cam_samples_corr(tmp_idx+1:end)];
+
+        % Move "missing frame index" for any subsequent frame drops
+        if numel(adjusted_missing_frame_idx) > i
+
+            adjusted_missing_frame_idx(i+1) = adjusted_missing_frame_idx(i+1) + length(tmp_nan_vector);
+        end
+        
+        missing_frame_idx_stop(i) = missing_frame_idx(i) + length(tmp_nan_vector) + 1 ;
+
+    end
+end
+
+
 %%
 figure(1), clf
 sgtitle(sData.sessionInfo.sessionID, 'interpreter', 'none')
 h(1) = subplot(211);
+% time_vec = (0:length(cam_samples_sec)-1)/fps_corrected;
 plot(cam_samples_sec)
 
 if ~isempty(missing_frame_idx)
@@ -197,7 +214,7 @@ title('Diff of camera frame times')
 xlabel('samples')
 linkaxes(h, 'x' )
 
-sData.daqdata.missing_cam_frames = missing_frame_idx;
+sData.daqdata.missing_cam_frames = [missing_frame_idx; missing_frame_idx_stop];
 
 % 
 % msgbox(sprintf(['Difference in camera vs 2P frames in session ',  sData.sessionInfo.sessionID, ' is: ', num2str(numel(corrected_t(zero_idx:end))-numel(two_photon_frame_times)) ]));
@@ -237,7 +254,7 @@ if isfield(sData, 'ephysdata3')
     sData = rmfield(sData, 'ephysdata3');
 end
 
-sData.daqdata.cam_frame_times        = cam_samples_sec;
+sData.daqdata.cam_frame_times        = cam_samples_corr;
 sData.daqdata.two_photon_frame_times = two_photon_frame_times;
 sData.daqdata.camera_start_frame     = zero_idx;
 try

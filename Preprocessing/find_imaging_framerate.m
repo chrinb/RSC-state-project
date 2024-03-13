@@ -45,7 +45,7 @@ elseif isfield(sData, 'daqdata')
     end
 
     srate = 1 / ( (mean(diff(frame_start_index))) / sData.daqdata.metadataFromLV.Sampling_rate_downsampled  ); 
-    msgbox( ['Sample rate for ', sData.sessionInfo.sessionID,' is ', num2str(srate)])
+    % msgbox( ['Sample rate for ', sData.sessionInfo.sessionID,' is ', num2str(srate)])
 end
 % If piezo recording divide by 4
 if nargin > 1

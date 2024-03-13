@@ -23,7 +23,7 @@ checkParameter = @(param, n, str) (isnumeric(param) && param==n) || strcmp(param
 % peri-event window. For ephys, its the first 2500 samples (1 sec )
 % of the peri-event window
 
-if strcmp(params.signal_type, 'EMG') || strcmp(params.signal_type, 'ECoG') || strcmp(params.signal_type, 'Running speed')
+if strcmp(params.signal_type, 'EMG') || strcmp(params.signal_type, 'ECoG') || strcmp(params.signal_type, 'Running speed') || strcmp(params.signal_type, 'LFP')
      baseline_win = 1:2500;
      one_sec = 2500;
 else

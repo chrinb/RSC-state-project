@@ -10,7 +10,7 @@ params    = varargin{1,2};
 sleep_idx = varargin{1,3};
 
 % Load and assign variables
-nr_of_seconds  = 3;
+nr_of_seconds  = 1;
 win_length     = (nr_of_seconds*2500*2)+1;
 time           = (-(nr_of_seconds*2500):(nr_of_seconds*2500))./2500;
 sessionID      = sData.sessionInfo.sessionID;
@@ -23,6 +23,8 @@ elseif strcmp(params.signal_type, 'EMG')
     signal = sData.ephysdata3.lfp';
 elseif strcmp(params.signal_type,'Running speed')
     signal = sData.daqdata.runSpeed';
+elseif strcmp(params.signal_type,'LFP')
+    signal = sData.ephysdata.lfp';
 end
 
 % Z-score signal (not running speed)
