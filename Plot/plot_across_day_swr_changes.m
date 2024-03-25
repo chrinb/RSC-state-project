@@ -97,7 +97,7 @@ for pre_post = 1:2
         ylabel(ylabel_text)
         h(1).XTick = (1.5:2:14);
         h(1).XTickLabel = {'Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'};
-        set(gca, 'FontSize', 12)    
+        set(gca, 'FontSize', 15)    
 
     end
 end
@@ -105,8 +105,8 @@ end
 %% Compare means between days
 merged_data =  [data_pre, data_post];
 
-idx1 = [1 3 5 7 9 11];
-idx2 = [2 4 6 8 10 12];
+pre_idx1 = [1 3 5 7 9 11 13] ;
+post_idx2 = [2 4 6 8 10 12 14];
 
 rf_idx = 1:4;
 gol_idx = 5:7;
@@ -115,8 +115,8 @@ gol_idx = 5:7;
 % Mean across days
 if iscell(data_to_plot(1,:))
     merged_data_sorted = cell(size(merged_data));
-    merged_data_sorted(:, idx1) = data_pre;
-    merged_data_sorted(:, idx2) = data_post;
+    merged_data_sorted(:, pre_idx1) = data_pre;
+    merged_data_sorted(:, post_idx2) = data_post;
 
     merged_data_sorted = merged_data_sorted';
 
@@ -125,8 +125,8 @@ if iscell(data_to_plot(1,:))
     end
 else
     merged_data_sorted = zeros( size(merged_data));
-    merged_data_sorted(:, idx1) = data_pre;
-    merged_data_sorted(:, idx2) = data_post;
+    merged_data_sorted(:, pre_idx1) = data_pre;
+    merged_data_sorted(:, post_idx2) = data_post;
 
 
     data_mean = mean(merged_data_sorted,2);
@@ -191,7 +191,7 @@ s1.MarkerFaceAlpha = .3;
 s2.MarkerFaceAlpha = .2;
 
 ylabel(ylabel_text)
-set(gca, 'FontSize', 12)    
+set(gca, 'FontSize', 15)    
 
 h(2).XTick = [0 1 2 3];
 title(['ranksum p = ', num2str(ranksum_p), ', t-test p = ', num2str(ttest_p)]);

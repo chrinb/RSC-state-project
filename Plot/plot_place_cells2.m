@@ -1,4 +1,4 @@
-function plot_place_cells(sData, params, sessionObject)
+function plot_place_cells2(sData, params, sessionObject)
 
 %{
 Plot colormap of place cells (cells x time) and wheel position below

@@ -28,10 +28,44 @@ switch params.signal_type
 end
 
 switch params.cell_type
-    case {'pc', 'in'}
+    case {'pc', 'in', 'all'}
+        
+
+        % If longitudinal ROI array contains NaN indices, insert NaN
+        % vectors of same length as recording
+        if sum(isnan(pc_rois)) > 0
+
+            tmp_pc_mat = zeros( length(pc_rois), size(sData.imdata.roiSignals(2).newdff,2));
+            % tmp_in_mat = zeros( length(in_rois), size(sData.imdata.roiSignals(2).newdff,2));
+        
+            for pc_n = 1:length(pc_rois)
+                
+                if isnan(pc_rois(pc_n))
+                    tmp_pc_mat(pc_n,:) = NaN(1, size(sData.imdata.roiSignals(2).newdff,2));
+                else
+                    tmp_pc_mat(pc_n,:) = sData.imdata.roiSignals(2).(txt)(pc_rois(pc_n),:);
+                end
+            end
+            signal_to_plot{1,:} = tmp_pc_mat;
+
+          % for in_n = 1:length(in_rois)
+          % 
+          %       if isnan(in_rois(in_n))
+          %           tmp_in_mat(in_n,:) = NaN(1, size(sData.imdata.roiSignals(2).newdff,2));
+          %       else
+          %           tmp_in_mat(in_n,:) = sData.imdata.roiSignals(2).(txt)(in_rois(in_n),:);
+          %       end
+          % end
+          %   signal_to_plot{2,:} = tmp_in_mat;
+            cmap                = [0 2 ];
+
+        else
+
         signal_to_plot{1,:} = sData.imdata.roiSignals(2).(txt)(pc_rois,:);
-        signal_to_plot{2,:} = sData.imdata.roiSignals(2).(txt)(in_rois,:);
+        % signal_to_plot{2,:} = sData.imdata.roiSignals(2).(txt)(in_rois,:);
         cmap                = [0 2];
+        end
+
     case 'axon'
         signal_to_plot{1,:} = sData.imdata.roiSignals(2).(['mergedAxons',axon_txt]);
         cmap                = [0 2 ];

@@ -16,6 +16,8 @@ switch params.cell_type
         signal = signal{2,:};
     case 'axon'
         signal = signal{1,:};
+    case 'all'
+        signal = signal{1,:};
 end
 
 % Variable to convert ephys time staps to 2P time
