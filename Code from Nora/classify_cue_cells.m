@@ -10,9 +10,6 @@ binned_data = sData.imdata.binned.RoidFF;
 n_bins      = sData.behavior.meta.nBins;
 bin_vector  = 1:n_bins;
 
-
-
-
 % Area +- cue position to search for activity (in cm)
 cue_zone = 7;
 
