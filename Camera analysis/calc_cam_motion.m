@@ -23,10 +23,9 @@ data = load(facemap_data_path);
 
 start_frame = sData.daqdata.camera_start_frame  ;
 
-
 threshold  = 5*std(abs( data.motSVD_4(start_frame:start_frame+100, 1)));
     
-%% Plot eye ROI 
+%% Find 2P laser onset and set that as first frame in face cam data
 figure(1), clf 
 hold on
 plot( abs(data.motSVD_4(start_frame:end, 1)),'LineWidth',2)
@@ -49,8 +48,6 @@ true_start_frame = start_frame+locs_corr;
 
 sData.daqdata.true_camera_start_frame = true_start_frame;
 
-%% Find closest frame betweeen face cam and two-photon 
-
 % Use the frame when the 2P light shines through the eye ("locs") as the
 % first frame in the "cam_frame_times" variable. Then find closest
 % corresponding 2P frame for rest of recording.
@@ -58,80 +55,151 @@ sData.daqdata.true_camera_start_frame = true_start_frame;
 cam_samples_sec            = sData.daqdata.cam_frame_times;
 cam_frame_time_at_2P_onset = cam_samples_sec(true_start_frame);
 
-adjusted_missing_frame_idx = sData.daqdata.missing_cam_frames > true_start_frame;
-adjusted_missing_frame_idx = sData.daqdata.missing_cam_frames(adjusted_missing_frame_idx)-true_start_frame;
+% adjusted_missing_frame_idx = sData.daqdata.missing_cam_frames > true_start_frame;
+% adjusted_missing_frame_idx = sData.daqdata.missing_cam_frames(adjusted_missing_frame_idx)-true_start_frame;
 
-corrected_t      = cam_samples_sec-cam_frame_time_at_2P_onset;
-corrected_t_trim = corrected_t(true_start_frame:end);
+corrected_t          = cam_samples_sec-cam_frame_time_at_2P_onset;
+corr_cam_frame_times = corrected_t(true_start_frame:end);
+% corr_cam_frame_times = corr_cam_frame_times(2:end);
 
-corr_cam_frame_times = corrected_t_trim;
-sData.daqdata.cam_frame_times_corr = corr_cam_frame_times;
+% For one session, cam frame rate is ~60Hz. So for that session delete every second sample.
+if sData.daqdata.faceCam_fps > 40
+    corr_cam_frame_times1 = corr_cam_frame_times(1:2:end);
+else 
+    corr_cam_frame_times1 = corr_cam_frame_times;
+end
 
+
+%% Align the face camera frames with two-photon frames
 n_2p_samples = size( sData.imdata.roiSignals(2).newdff, 2);
 
-% closest_matches = zeros(size(corr_cam_frame_times));
-[idx_two_photon, facecam_match_with_2p] = deal( zeros(n_2p_samples,1  ));
-
-% Loop over face cam frame times and find the closest 2P frame
-for i = 1:length(corr_cam_frame_times)
-    
-    if isnan( corr_cam_frame_times(i))
-        facecam_match_with_2p(i) = NaN;
-        idx_two_photon(i) = NaN;
-    else
-
-    % Find the index in the 2P vector that is closest to the current face cam frame vector    
-    time_diffs         = abs(corr_cam_frame_times(i) - sData.daqdata.two_photon_frame_times);    
-    [minval, min_index]     = min(time_diffs);
-    % facecam_match_with_2p(i) = sData.daqdata.two_photon_frame_times(min_index);
-    % facecam_match_with_2p(i) =corr_cam_frame_times(min_index);
-    
-    % IMPORTANT: this variable contains indices pointing to the two-photon
-    % frame at the same time as the face cam. For example, if face cam
-    % frame 10000 = 323.0760, the index is 9992, corresponding to 2P data
-    % frame 9992 = 323.0638
-    idx_two_photon(i) = min_index;
-    end
-end
-idx_two_photon(idx_two_photon==0) = NaN;
+% [idx_motion, facecam_match_with_2p] = deal( zeros(n_2p_samples,1  ));
+% 
+% % Loop over face cam frame times and find the closest 2P frame
+% for i = 1:length(corr_cam_frame_times)
+% 
+%     if isnan( corr_cam_frame_times(i))
+%         % facecam_match_with_2p(i) = NaN;
+%         idx_motion(i) = NaN;
+%     else
+% 
+%     % Find the index in the 2P vector that is closest to the current face cam frame vector    
+%     time_diffs         = abs(corr_cam_frame_times(i) - sData.daqdata.two_photon_frame_times);    
+%     [minval, min_index]     = min(time_diffs);
+%     % facecam_match_with_2p(i) = sData.daqdata.two_photon_frame_times(min_index);
+%     % facecam_match_with_2p(i) =corr_cam_frame_times(min_index);
+% 
+%     % IMPORTANT: this variable contains indices pointing to the two-photon
+%     % frame at the same time as the face cam. For example, if face cam
+%     % frame 10000 = 323.0760, the index is 9992, corresponding to 2P data
+%     % frame 9992 = 323.0638
+%     idx_motion(i) = min_index;
+%     end
+% end
+% idx_motion(idx_motion==0) = NaN;
 
 %% Test 
+n_2p_samples  = size( sData.imdata.roiSignals(2).newdff, 2);
+
+if ~sData.daqdata.two_photon_frame_times(1) == 0
+    sData.daqdata.two_photon_frame_times = [0; sData.daqdata.two_photon_frame_times];
+end
 
 idx_motion = zeros(1, n_2p_samples);
-
+%% Loop
 for i = 1:n_2p_samples
-    
-    % if sData.daqdata.two_photon_frame_times(i) < min_sig(end)
-    %     i
-        % Find the index in the 2P vector that is closest to the current face cam frame vector    
-        time_diffs         = abs(sData.daqdata.two_photon_frame_times(i) - corr_cam_frame_times);    
-        [min_val, min_index]     = min(time_diffs);
-        
+
+    if i <= numel( sData.daqdata.two_photon_frame_times)
+         
+        % sample_time_diff = abs(sData.daqdata.two_photon_frame_times(i) - corr_cam_frame_times1(i));    
+        % % Find the index in the 2P vector that is closest to the current face cam frame vector    
+        % all_time_diffs           = abs(sData.daqdata.two_photon_frame_times(i) - corr_cam_frame_times1);    
+        % [min_val, min_index] = min(all_time_diffs);
+        % 
         % While loop index is smaller than nr of frames in face cam, check
         % if corresponding face cam frame is NaN
-        if i < numel(corr_cam_frame_times)
-            if isnan( corr_cam_frame_times(i))
+        if i < numel(corr_cam_frame_times1)
+            
+            % Compare 
+            % sample_time_diff     = abs( sData.daqdata.two_photon_frame_times(i) - corr_cam_frame_times1(i) );    
+            all_time_diffs       = abs( sData.daqdata.two_photon_frame_times(i) - corr_cam_frame_times1 );    
+            [min_val, min_index] = min(all_time_diffs);
+
+
+            if isnan( corr_cam_frame_times1(i))
                 idx_motion(i) = NaN;
+                
             else
-                idx_motion(i) = min_index;
+
+                % if abs( sample_time_diff - min_val ) < 0.01
+                %     idx_motion(i) = i;
+                % else
+                    idx_motion(i) = min_index;
+                % end
             end
+        else
+            idx_motion(i) = NaN;
         end
-
-    % end
-
+    end
 end
+
+% IMPORTANT: this variable contains indices pointing to the face cam sample 
+% closest in time to the corresponding 2P frame. For example, if 2P sample
+% frame 10000 = 323.3196, inputting 10000 into idx_motion = 10009, showing that 
+% the nearest face cam frame occurs at index 10009 (corr_cam_frame_times(
+% idx_motion(10000)) = 323.3320
 idx_motion(idx_motion==0)= NaN;
 
+% % Quick fix
+% inter_sample_times = diff(idx_motion);
+% inter_sample_times = [1 inter_sample_times];
+% for i = 1:n_2p_samples
+% 
+%     % When the index goes to the next frame, check whether there is
+%     % meaningful difference
+%     if ~( inter_sample_times(i) == 1)
+% 
+%         if ~(idx_motion(i) == i)
+%             pre_frame_idx_val = abs( sData.daqdata.two_photon_frame_times(i) - corr_cam_frame_times1( idx_motion(i) - 1) );
+%             cur_frame_idx_val  = abs( sData.daqdata.two_photon_frame_times(i) - corr_cam_frame_times1( idx_motion(i) ) );
+%             post_frame_idx_val = abs( sData.daqdata.two_photon_frame_times(i) - corr_cam_frame_times1( idx_motion(i) + 1) );
+%             % potential_val = abs( sData.daqdata.two_photon_frame_times(i)-corr_cam_frame_times1(i) );
+%             % true_val      = abs( sData.daqdata.two_photon_frame_times(i)-corr_cam_frame_times1( idx_motion(i)) );
+% 
+%             current_to_pre   = abs( cur_frame_idx_val - pre_frame_idx_val);
+%             current_to_post  = abs( cur_frame_idx_val - post_frame_idx_val);
+% 
+%             % Find which frame idx is closer, pre or post
+%             combined_idx = [current_to_pre, current_to_post];
+%             [~, min_idx] = min( combined_idx);
+% 
+%             if min_idx == 1
+%                 idx_motion(i) = idx_motion(i)-1 ;
+%             elseif min_idx == 2
+%                 idx_motion(i) = idx_motion(i)+1 ;
+%             end
+%         end
+%     end
+% end
+
+sData.daqdata.aligned_2p_face_cam_idx = idx_motion;
+sData.daqdata.cam_frame_times_corr    = corr_cam_frame_times1;
+% rmfield(sData.daqdata,"facecam_2p_idx");
 
 %% Align motion vectors from face camp with 2p data
 
 % First insert NaNs into motion vector based on face cam frame time vector
-nan_indices = isnan(corr_cam_frame_times);
+nan_indices = isnan(corr_cam_frame_times1);
 
 paw_data_adjusted     = double( mean( abs( data.motSVD_1(true_start_frame:end, 1:3) ),2) );
 face_data_adjusted    = double( mean( abs( data.motSVD_2(true_start_frame:end, 1:3) ),2) );
 whisker_data_adjusted = double( mean( abs( data.motSVD_3(true_start_frame:end, 1:3) ),2) );
 
+if sData.daqdata.faceCam_fps > 40
+    paw_data_adjusted = paw_data_adjusted(1:2:end);
+    face_data_adjusted = face_data_adjusted(1:2:end);
+    whisker_data_adjusted = whisker_data_adjusted(1:2:end);
+end
 % paw_data_adjusted(nan_indices) = NaN;
 
 nan_stretches = find( [false; diff(nan_indices) == 1]);
@@ -154,7 +222,6 @@ end
 
 for i = 1:n_2p_samples 
     
-    
     tmp_idx = idx_motion(i);
     if isnan(tmp_idx)       
         paw_motion_2p_match(i)     = NaN;
@@ -168,7 +235,7 @@ for i = 1:n_2p_samples
     else
         paw_motion_2p_match(i)     = paw_data_adjusted( tmp_idx);
         face_motion_2p_match(i)    = face_data_adjusted( tmp_idx);
-        whisker_motion_2pt_match(i) = whisker_data_adjusted( tmp_idx);
+        whisker_motion_2p_match(i) = whisker_data_adjusted( tmp_idx);
     end
 
 end
@@ -180,11 +247,10 @@ sData.analysis.face_data    = face_motion_2p_match;
 sData.analysis.whisker_data = whisker_motion_2p_match;
 
 %% Plot mean of the absolute values of top 3 SVD components
-cam_srate = sData.daqdata.faceCam_fps;
 
-time_vec = (0:length(sData.analysis.paw_data)-1)/cam_srate;
+time_vec = (0:length(sData.analysis.paw_data)-1)/31;
 
-figure(5), clf 
+figure(2), clf 
 hold on
 sgtitle('Mean absolute values top 3 components (SVD)')
 h(1) = subplot(313);
@@ -206,13 +272,17 @@ xlabel('Time (s)', FontSize=14)
 %% Calculate movement thresholds
 srate = find_imaging_framerate(sData);
 
-window = sData.daqdata.faceCam_fps;
+if sData.daqdata.faceCam_fps > 40
+    window = 31;
+else
+    window = sData.daqdata.faceCam_fps;
+end
 
-if window > 40
+if sData.daqdata.faceCam_fps > 40
 
-    face_threshold    = ( movstd(sData.analysis.face_data, window) - mean(movstd(sData.analysis.face_data, window)) ) > 1;
-    paw_threshold     = movstd(sData.analysis.paw_data, window) - mean(movstd(sData.analysis.paw_data, window)) > 1;
-    whisker_threshold = movstd(sData.analysis.whisker_data, window) - mean(movstd(sData.analysis.whisker_data, window)) > 1;
+    face_threshold    = ( movstd(sData.analysis.face_data, window) - mean(movstd(sData.analysis.face_data, window),'omitnan') ) > 1;
+    paw_threshold     = movstd(sData.analysis.paw_data, window) - mean(movstd(sData.analysis.paw_data, window),'omitnan') > 1;
+    whisker_threshold = movstd(sData.analysis.whisker_data, window) - mean(movstd(sData.analysis.whisker_data, window),'omitnan') > 1;
     msgbox([sData.sessionInfo.sessionID, ' window is larger than 40 samples, investigate'])
 else
     face_threshold    = movstd(sData.analysis.face_data, window)   > 1;

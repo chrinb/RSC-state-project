@@ -55,7 +55,6 @@ for i = 1:size(all_cue_zones, 1)
     cue_template(all_cue_zones(i, 1):all_cue_zones(i, 2)) = 1;
 end
 
-
 figure(5),clf
 colormap viridis
 for roi_n = 1:n_rois 
@@ -67,13 +66,10 @@ for roi_n = 1:n_rois
 
             % Activity map (trials x bins) and its mean for current ROI
             activity_map        = binned_data{1,roi_n};
-
             activity_map_mean   = mean( activity_map, 'omitnan');
-            % activity_map_median = median( activity_map, 'omitnan');
 
             n_shuffles = 1000;
             mean_shuffled_mat = zeros(1000,80);
-            % max_shuffle_xcorr = zeros( 1000, 1);
             for shuffle_n = 1:n_shuffles
                 
                 % Random integers between 1 and 80, one for every trial
@@ -84,90 +80,17 @@ for roi_n = 1:n_rois
         
                 % Store mean shuffled activity map 
                 mean_shuffled_mat(shuffle_n,:) = mean(shuffled_mat, 'omitnan');
-
-                % max_shuffle_xcorr(shuffle_n) = max( xcorr( mean( shuffled_mat, 'omitnan'), cue_template ));
             end
-        
-            % Corr-correlation val
-            % max_true_xcorr = max( xcorr( activity_map_mean, cue_template) );
+
 
             % Check whether position bins for original tuning curve is larger
             % than 95th percentile of the shuffled responses
             threshold_top    = prctile(mean_shuffled_mat, 99, 1);
             threshold_bottom = prctile(mean_shuffled_mat, 1, 1);
 
-            % shuffle_mean = mean(mean_shuffled_mat);
-            
-            % test = activity_map_mean;
-            % test(activity_map_mean < shuffle_mean) =NaN;
-           
-            % activity_map_mean_smooth = smoothdata(activity_map_mean, 'Gaussian', 1);
-
+            % Indices of bins containing significant responses
             sig_bin_idx     = activity_map_mean > threshold_top;
-            % sig_bins = bin_vector(activity_map_mean_smooth > threshold_top);
-    
-            % Reliability check (peak activity per trial must happen inside
-            % cue zones 25% of trials
-
-            % [max_val, max_id] = max( activity_map,[], 2);
-            % test = prctile(max_val, 50);
-            % threshold_all_activity_map = prctile(activity_map(:), 95);
-            % test = 2;
-
-            % is_within_range = zeros(1,4);
-            n_trials = size(activity_map,1);
-
-            % reliability_check = zeros(n_trials, 1);
-
-            peac_activity_above_threshold= zeros(n_trials, 1);
-            peak_activity_in_cue = zeros(n_trials, 4);
-            reliability_threshold = 0;
-    
-            % Concatenate all trials into a vector to determine baseline
-            % level of activity for thresholding each trial
-
-            % activity_map_cat    = reshape(activity_map, 1, []);
-            % threshold_per_trial = 2*std(activity_map_cat, 'omitnan');
-            % % Loop over trials
-            % for trial_nr = 1:n_trials
-            % 
-            %     % Check if trial contains peak activity above threshold AND
-            %     % that activity falls within cue zone
-            % 
-            %     trial_data       = smoothdata( activity_map(trial_nr,:), 'gaussian', 5);
-            % 
-            %     % Test different thresholds: compute threshold based on
-            %     % activity in trial, or compute threshold over all trials
-            %     % (either entire activity map or concatenated activity map)
-            % 
-            %     % trial_threshold  = 3*std(activity_map(trial_nr,:));
-            %     trial_threshold  = threshold_all_activity_map;
-            %     trial_threshold  = threshold_per_trial;
-            % 
-            %     [trial_max, trial_max_id]  = max(trial_data);
-            % 
-            %     peac_activity_above_threshold(trial_nr) = trial_max > trial_threshold ;
-            % 
-            %     if trial_max > trial_threshold
-            %         if sum( trial_max_id >= all_cue_zones(:, 1) & trial_max_id <= all_cue_zones(:, 2) ) > 0
-            %             peak_activity_in_cue(trial_nr, :) = trial_max_id >= all_cue_zones(:, 1) & trial_max_id <= all_cue_zones(:, 2);
-            %         end
-            %     end
-            % 
-            %     % if sum(is_within_range) > 0
-            %     %     reliability_check(trial_nr) = 1;
-            %     % end
-            % end
-            % % trials_to_include = peak_activity_in_cue(peac_activity_above_threshold==1,:);
-            % 
-            % if any( sum(peak_activity_in_cue) / n_trials > 0.1 )
-            % 
-            %     reliability_threshold = 1;
-            % end
-
-            % Loop over place fields and check whether there are at least 3
-            % consecutive bins inside cue zone
-
+          
 
             % Max place field width in cm
             pf_width_max = 35;
@@ -298,8 +221,6 @@ for roi_n = 1:n_rois
 
                 set(gca,'YLim', y_lims)
 
-
-                
                 axis square
                 title([num2str(roi_n), ' !!'])
                 linkaxes(h, 'x')
